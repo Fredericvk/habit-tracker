@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habit Tracker — Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #F7F8FA;
+  --bg-secondary: #F0F1F5;
+  --bg-tertiary: #F3F4F6;
+  --card-bg: #FFFFFF;
+  --card-border: transparent;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 4px 24px rgba(0,0,0,0.04);
+  --border-light: #E5E7EB;
+  --accent-blue: #5B4CDB;
+  --accent-green: #10B981;
+  --accent-amber: #F59E0B;
+  --accent-amber-dark: #D97706;
+  --accent-purple: #5B4CDB;
+  --danger: #EF4444;
+  --success: #10B981;
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --separator: #E5E7EB;
+  --tint-blue: #EDE9FF;
+  --tint-green: #D1FAE5;
+  --tint-purple: #EDE9FF;
+  --tint-amber: #FEF3C7;
+  --font-display: 'Inter', -apple-system, 'Helvetica Neue', sans-serif;
+  --font-text: 'Inter', -apple-system, 'Helvetica Neue', sans-serif;
+  --transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: #EEEDF5;
+  font-family: var(--font-text);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  user-select: none;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+}
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.phone-frame {
+  width: 375px;
+  height: 812px;
+  border-radius: 44px;
+  background: var(--bg-deep);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 0 3px #D1CEE6, 0 0 0 6px #EEEDF5, 0 20px 80px rgba(91,76,219,0.12), 0 40px 120px rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px 0;
+  height: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  position: relative;
+  z-index: 20;
+}
+.status-bar .time { font-weight: 700; font-size: 15px; color: var(--text-primary); }
+.status-bar .icons { display:flex; gap:6px; align-items:center; font-size:13px; }
+.status-bar .icons svg { width:16px; height:16px; fill:#1C1C1E; }
+
+.dynamic-island {
+  width: 120px;
+  height: 34px;
+  background: #000;
+  border-radius: 20px;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+}
+
+.content-area {
+  position: absolute;
+  top: 50px;
+  bottom: 84px;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.content-area::-webkit-scrollbar { display:none; }
+
+.screen {
+  display: none;
+  padding: 0 20px 24px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 350ms cubic-bezier(0.4, 0, 0.2, 1), transform 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100%;
+}
+.screen.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tab-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 84px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 0.5px solid rgba(0,0,0,0.08);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  padding-top: 8px;
+  z-index: 20;
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 4px 12px;
+  transition: all var(--transition);
+  flex: 1;
+  max-width: 120px;
+}
+.tab-item .tab-icon { font-size: 22px; line-height: 1; transition: transform var(--transition); display: flex; align-items: center; justify-content: center; }
+.tab-item .tab-icon svg { width: 24px; height: 24px; transition: all var(--transition); }
+.tab-item .tab-label { font-size: 10px; font-weight: 500; color: var(--text-tertiary); transition: color var(--transition); }
+.tab-item.active .tab-label { color: var(--accent-purple); }
+.tab-item.active .tab-icon svg { color: var(--accent-purple); }
+.tab-item:active { transform: scale(0.92); }
+.tab-item.tab-home .tab-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-purple);
+  box-shadow: 0 4px 14px rgba(91,76,219,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -26px;
+}
+.tab-item.tab-home .tab-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: #FFFFFF !important;
+}
+.tab-item.tab-home .tab-icon svg rect[fill] {
+  fill: #FFFFFF !important;
+}
+.tab-item.tab-home { margin-top: -2px; }
+
+.glass-card {
+  background: var(--card-bg);
+  border: none;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 14px;
+  box-shadow: var(--card-shadow);
+  transition: transform var(--transition), box-shadow var(--transition);
+  animation: card-enter 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.glass-card:active { transform: scale(0.985); }
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.glass-card:nth-child(2) { animation-delay: 80ms; }
+.glass-card:nth-child(3) { animation-delay: 160ms; }
+.glass-card:nth-child(4) { animation-delay: 240ms; }
+.glass-card:nth-child(5) { animation-delay: 320ms; }
+
+.screen-header {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  padding: 12px 0 6px;
+}
+
+.week-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.week-header h2 { font-family:var(--font-display); font-size:22px; font-weight:700; }
+
+.day-indicators { display:flex; gap:6px; }
+.day-dot {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600;
+  border: 2px solid var(--separator);
+  color: var(--text-secondary);
+  transition: all var(--transition);
+}
+.day-dot.past { background: var(--bg-tertiary); color: var(--text-secondary); border-color: var(--separator); }
+.day-dot.today { background: var(--accent-purple); color: #fff; border-color: var(--accent-purple); font-weight: 700; }
+.day-dot.future { border-color: var(--separator); color: var(--text-tertiary); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+}
+.streak-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--bg-tertiary);
+}
+
+.ring-container { display:flex; align-items:center; gap:16px; margin-bottom:12px; }
+.progress-ring-wrap { position:relative; width:72px; height:72px; flex-shrink:0; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.08)); }
+.progress-ring-wrap svg { transform:rotate(-90deg); }
+.ring-text {
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-family:var(--font-display);
+  font-size:22px;
+  font-weight:700;
+  color: var(--text-primary);
+}
+.ring-text small { font-size:13px; font-weight:500; color:var(--text-secondary); }
+
+.workout-list { list-style:none; }
+.workout-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+.workout-item:last-child { border-bottom:none; }
+.workout-day { color:var(--text-secondary); width:36px; }
+.workout-name { flex:1; font-weight:500; }
+.workout-stats { color:var(--text-secondary); font-size:12px; text-align:right; }
+.workout-source { font-size:10px; padding:2px 6px; border-radius:8px; background:rgba(245,158,11,0.1); color:#F59E0B; margin-left:6px; }
+.workout-source.manual { background:var(--bg-tertiary); color:var(--text-secondary); }
+.card-status { font-size: 13px; color: var(--text-secondary); margin-top: 10px; }
+
+.eating-days { display:flex; gap:8px; margin-bottom:12px; }
+.eat-pill {
+  width:44px; height:44px;
+  border-radius:14px;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  font-size:10px; gap:2px;
+  background: var(--tint-green);
+  border: 1.5px solid rgba(16,185,129,0.3);
+}
+.eat-pill .day-label { font-size:9px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; }
+.eat-pill .day-status { font-size:16px; }
+.eat-pill.today { border-color: var(--accent-green); box-shadow: 0 0 12px rgba(16,185,129,0.18); }
+.eat-pill.empty { background: var(--bg-tertiary); border-color: var(--separator); }
+
+.alcohol-bar-wrap { margin-bottom:14px; }
+.alcohol-bar-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.alcohol-bar {
+  height:10px;
+  border-radius:6px;
+  background: var(--bg-tertiary);
+}
+.alcohol-bar-fill {
+  height:100%;
+  border-radius:6px;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-amber), var(--danger));
+  transition: width 1.2s cubic-bezier(0.22,1,0.36,1);
+  width: 0;
+}
+.drink-chips { display:flex; gap:8px; flex-wrap:wrap; }
+.drink-chip {
+  display:flex; align-items:center; gap:4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--tint-amber);
+  border: 1px solid rgba(255,159,10,0.2);
+  font-size: 13px;
+}
+
+.snack-pass-toggle {
+  font-size: 11px;
+  color: var(--accent-green);
+  cursor: pointer;
+  text-align: center;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+.snack-pass-toggle:hover { opacity: 1; }
+.snack-pass-card {
+  display: none;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 14px;
+  background: linear-gradient(135deg, #E4FAEC 0%, #F0FFF4 100%);
+  border: 1.5px solid rgba(16,185,129,0.3);
+  position: relative;
+  overflow: hidden;
+}
+.snack-pass-card.show { display: block; animation: sparkle-in 0.5s ease; }
+.snack-pass-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 16px;
+  background: linear-gradient(45deg, var(--accent-green), var(--accent-amber), var(--accent-purple), var(--accent-green));
+  background-size: 300% 300%;
+  animation: shimmer 3s ease infinite;
+  z-index: -1;
+  opacity: 0.2;
+}
+@keyframes shimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+@keyframes sparkle-in { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+
+.segmented-control {
+  display: flex;
+  background: transparent;
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 20px;
+  position: relative;
+  gap: 8px;
+}
+.seg-btn {
+  flex: 1;
+  text-align: center;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 50px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  position: relative;
+  background: var(--bg-tertiary);
+}
+.seg-btn.active { color: #fff; background: var(--accent-purple); }
+.seg-slider {
+  display: none;
+}
+
+.log-section { display:none; }
+.log-section.active { display:block; animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes fade-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.input-group { margin-bottom:16px; }
+.input-label { font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px; }
+.input-field {
+  width:100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--separator);
+  background: #FFFFFF;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-family: var(--font-text);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.input-field:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 3px rgba(91,76,219,0.15); }
+.input-field::placeholder { color: var(--text-tertiary); }
+
+.chip-scroll { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+.chip-scroll::-webkit-scrollbar { display:none; }
+.chip {
+  display:flex; align-items:center; gap:5px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--separator);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+.chip:active { transform:scale(0.95); }
+.chip.selected { background: var(--tint-purple); border-color: var(--accent-purple); color: var(--accent-purple); }
+.chip.add-chip { border-style: dashed; color: var(--text-secondary); }
+
+.inline-inputs { display:flex; gap:10px; }
+.inline-inputs .input-group { flex:1; }
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border-radius: 50px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-primary:active { transform:scale(0.98); box-shadow: none; }
+.btn-primary:hover { filter: brightness(0.97); }
+.btn-blue { background:linear-gradient(135deg, #5B4CDB, #7C6FE3); color:#fff; box-shadow: 0 4px 14px rgba(91,76,219,0.3); }
+.btn-green { background:linear-gradient(135deg, #10B981, #34D399); color:#fff; box-shadow: 0 4px 12px rgba(16,185,129,0.25); }
+.btn-amber { background:linear-gradient(135deg, #F59E0B, #FBBF24); color:#fff; box-shadow: 0 4px 12px rgba(245,158,11,0.25); }
+.btn-purple { background:linear-gradient(135deg, #5B4CDB, #7C6FE3); color:#fff; box-shadow: 0 4px 14px rgba(91,76,219,0.3); }
+.btn-danger { background:linear-gradient(135deg, #EF4444, #F87171); color:#fff; box-shadow: 0 4px 12px rgba(239,68,68,0.25); }
+
+.ai-result {
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--tint-purple);
+  border: 1px solid rgba(91,76,219,0.15);
+  margin-top: 12px;
+}
+.ai-result h4 { font-size:14px; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.ai-result .ai-tag { font-size:11px; padding:3px 8px; border-radius:8px; background:rgba(16,185,129,0.12); color:var(--accent-green); font-weight:600; }
+.ai-result p { font-size:13px; color:var(--text-secondary); margin:4px 0; }
+.ai-edit-link { font-size:12px; color:var(--accent-purple); cursor:pointer; margin-top:6px; display:inline-block; }
+
+.meal-type-tabs { display:flex; gap:8px; margin-bottom:16px; }
+.meal-tab {
+  flex:1; text-align:center; padding:10px 8px; border-radius:12px;
+  background:var(--bg-tertiary); border:1.5px solid transparent;
+  font-size:13px; font-weight:600; cursor:pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+.meal-tab:active { transform:scale(0.96); }
+.meal-tab.active {
+  background:var(--tint-purple); border-color:var(--accent-purple);
+  color:var(--accent-purple);
+}
+.meal-tab.snack-tab.active {
+  background:rgba(239,68,68,0.1); border-color:var(--danger);
+  color:var(--danger);
+}
+.meal-type-selector {
+  display:flex; gap:8px; margin-top:6px;
+}
+.meal-type-option {
+  flex:1; padding:10px 0; text-align:center; font-size:14px; font-weight:600;
+  background:var(--bg-tertiary); border:none;
+  border-radius:50px; cursor:pointer; transition:all 0.2s;
+  color:var(--text-secondary);
+}
+.meal-type-option:active { transform:scale(0.96); }
+.meal-type-option.active {
+  background:var(--accent-purple); border:none;
+  color:#FFFFFF;
+}
+
+.log-date-bar {
+  display:flex; align-items:center; gap:0; margin-bottom:14px;
+  justify-content:center;
+}
+.log-date-nav-btn {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--bg-secondary); border:1.5px solid var(--border-light);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.2s; color:var(--text-secondary);
+  font-size:18px; font-weight:600; flex-shrink:0;
+}
+.log-date-nav-btn:active { transform:scale(0.9); background:var(--border-light); }
+.log-date-center {
+  flex:1; text-align:center; font-size:15px; font-weight:600;
+  color:var(--text-primary); padding:0 8px;
+  cursor:pointer; transition:color 0.2s;
+}
+.log-date-center .date-sub {
+  font-size:11px; font-weight:500; color:var(--accent-purple); margin-top:1px;
+}
+
+.camera-btn {
+  display:flex; align-items:center; gap:8px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--separator);
+  margin-top: 8px;
+  transition: all var(--transition);
+}
+.camera-btn:active { transform:scale(0.97); }
+
+.warning-banner {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #FEF2F2;
+  border: 1px solid rgba(239,68,68,0.15);
+  font-size: 13px;
+  color: var(--danger);
+  margin-bottom: 14px;
+}
+
+.drink-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.drink-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 8px;
+  border-radius: 20px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--separator);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 12px;
+  color: var(--text-secondary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.drink-type-btn .drink-emoji { font-size: 32px; }
+.drink-type-btn .drink-name { font-weight: 600; color: var(--text-primary); font-size: 13px; }
+.drink-type-btn .drink-detail { font-size:10px; color:var(--text-tertiary); font-weight:500; }
+.drink-type-btn:active { transform:scale(0.93); }
+.drink-type-btn.selected {
+  background:linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.15) 100%);
+  border-color:var(--accent-amber);
+  box-shadow: 0 4px 16px rgba(245,158,11,0.15);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: 16px 0;
+}
+.step-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--separator);
+  background: #FFFFFF;
+  color: var(--text-primary);
+  font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.step-btn:active { transform:scale(0.9); background:var(--bg-tertiary); }
+.step-value { font-family:var(--font-display); font-size:32px; font-weight:700; min-width:40px; text-align:center; }
+
+.drink-summary { text-align:center; margin:8px 0; }
+.drink-summary .session-total { font-size:18px; font-weight:700; color:var(--accent-amber); }
+.drink-summary .week-total { font-size:13px; color:var(--text-secondary); margin-top:4px; }
+
+/* Week view styles */
+/* Week grid layout */
+.week-grid {
+  display: grid;
+  grid-template-columns: 56px repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 20px;
+}
+.wg-label-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  min-height: 36px;
+}
+.wg-tracker-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.wg-day-header {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 6px 0;
+}
+.wg-day-header.today {
+  color: var(--accent-purple);
+  font-weight: 800;
+}
+.wg-day-header.future {
+  color: var(--text-tertiary);
+}
+.wg-cell {
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 2px;
+  transition: all 0.2s ease;
+}
+.wg-val {
+  font-size: 9px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+/* Calorie cells */
+.wg-cell.cal-good { background: rgba(16,185,129,0.12); }
+.wg-cell.cal-good .wg-val { color: var(--accent-green); }
+.wg-cell.cal-bad { background: rgba(239,68,68,0.12); }
+.wg-cell.cal-bad .wg-val { color: var(--danger); }
+.wg-cell.cal-inprogress { background: rgba(91,76,219,0.08); border: 1px dashed rgba(91,76,219,0.3); }
+.wg-cell.cal-inprogress .wg-val { color: var(--accent-purple); }
+.wg-cell.cal-future { background: var(--bg-tertiary); }
+.wg-cell.cal-future .wg-val { color: var(--text-tertiary); }
+/* Exercise cells */
+.wg-cell.ex-yes { background: rgba(91,76,219,0.12); }
+.wg-cell.ex-yes .wg-val { color: var(--accent-purple); }
+.wg-cell.ex-no { background: var(--bg-tertiary); }
+.wg-cell.ex-no .wg-val { color: var(--text-tertiary); font-weight: 500; }
+.wg-cell.ex-inprogress { background: rgba(91,76,219,0.06); border: 1px dashed rgba(91,76,219,0.25); }
+.wg-cell.ex-inprogress .wg-val { color: var(--text-tertiary); }
+.wg-cell.ex-future { background: var(--bg-tertiary); }
+.wg-cell.ex-future .wg-val { color: var(--text-tertiary); }
+/* Eating cells */
+.wg-cell.eat-clean { background: rgba(16,185,129,0.12); }
+.wg-cell.eat-clean .wg-val { color: var(--accent-green); font-size: 10px; }
+.wg-cell.eat-snack { background: rgba(239,68,68,0.12); }
+.wg-cell.eat-snack .wg-val { color: var(--danger); }
+.wg-cell.eat-inprogress { background: rgba(16,185,129,0.06); border: 1px dashed rgba(16,185,129,0.25); }
+.wg-cell.eat-inprogress .wg-val { color: var(--text-tertiary); }
+.wg-cell.eat-future { background: var(--bg-tertiary); }
+.wg-cell.eat-future .wg-val { color: var(--text-tertiary); }
+/* Alcohol cells */
+.wg-cell.alc-none { background: var(--bg-tertiary); }
+.wg-cell.alc-none .wg-val { color: var(--text-tertiary); }
+.wg-cell.alc-low { background: rgba(245,158,11,0.1); }
+.wg-cell.alc-low .wg-val { color: var(--accent-amber-dark); }
+.wg-cell.alc-med { background: rgba(245,158,11,0.2); }
+.wg-cell.alc-med .wg-val { color: var(--accent-amber-dark); }
+.wg-cell.alc-high { background: rgba(239,68,68,0.15); }
+.wg-cell.alc-high .wg-val { color: var(--danger); }
+.wg-cell.alc-inprogress { background: rgba(245,158,11,0.06); border: 1px dashed rgba(245,158,11,0.25); }
+.wg-cell.alc-inprogress .wg-val { color: var(--text-tertiary); }
+.wg-cell.alc-future { background: var(--bg-tertiary); }
+.wg-cell.alc-future .wg-val { color: var(--text-tertiary); }
+/* Rating row */
+.wg-rating-cell { background: transparent !important; min-height: 20px; }
+.wg-rating { width: 12px; height: 12px; border-radius: 50%; }
+.wg-rating.green { background: var(--success); }
+.wg-rating.amber { background: var(--accent-amber); }
+.wg-rating.red { background: var(--danger); }
+.wg-rating.none { background: var(--separator); }
+
+/* Weekly totals */
+.week-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--separator);
+}
+.wt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.wt-icon { font-weight: 700; width: 56px; }
+.wt-value { flex: 1; color: var(--text-secondary); }
+.wt-status { font-weight: 600; font-size: 11px; white-space: nowrap; }
+.wt-status.good { color: var(--success); }
+.wt-status.warn { color: var(--accent-amber); }
+.wt-status.bad { color: var(--danger); }
+
+.week-summary-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wsb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.wsb-icon { font-size: 16px; width: 24px; text-align: center; display: flex; align-items: center; justify-content: center; }
+.wsb-label { flex: 1; color: var(--text-secondary); }
+.wsb-visual { font-size: 14px; letter-spacing: 2px; }
+.wsb-bar-track {
+  width: 80px; height: 8px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+}
+.wsb-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.week-cal-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 16px;
+}
+.week-cal-cell {
+  flex: 1;
+  aspect-ratio: 0.75;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 2px;
+  position: relative;
+}
+.week-cal-cell.cell-green { background: rgba(16,185,129,0.1); }
+.week-cal-cell.cell-amber { background: rgba(245,158,11,0.1); }
+.week-cal-cell.cell-red { background: rgba(239,68,68,0.1); }
+.week-cal-cell.cell-future { background: var(--bg-tertiary); }
+.week-cal-cell .wcc-day { font-size: 9px; color: var(--text-secondary); font-weight: 600; }
+.week-cal-cell .wcc-num { font-size: 16px; font-weight: 700; }
+.week-cal-cell .wcc-dots { display: flex; gap: 3px; margin-top: 2px; }
+.week-cal-cell .wcc-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.wcc-dots .dot-purple { background: var(--accent-purple); }
+.wcc-dots .dot-blue { background: var(--accent-blue); }
+.wcc-dots .dot-green { background: var(--accent-green); }
+.wcc-dots .dot-amber { background: var(--accent-amber); }
+.wcc-dots .dot-grey { background: var(--separator); }
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.week-nav-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1px solid var(--separator);
+  color: var(--text-secondary);
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.week-nav-btn:active { transform: scale(0.9); }
+.week-nav-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.month-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.month-header-row h3 { font-family:var(--font-display); font-size:18px; font-weight:700; }
+.mini-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:16px; }
+.mini-cal-header { font-size:10px; color:var(--text-tertiary); text-align:center; font-weight:600; padding:4px 0; }
+.mini-cal-cell {
+  aspect-ratio:1;
+  border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:500;
+  color: var(--text-secondary);
+  cursor:pointer; transition:transform 0.15s;
+}
+.mini-cal-cell:not(.empty):active { transform:scale(0.88); }
+.mini-cal-cell.empty { cursor:default; }
+.mini-cal-cell.green { background:rgba(16,185,129,0.12); color:var(--success); }
+.mini-cal-cell.amber { background:rgba(245,158,11,0.1); color:var(--accent-amber); }
+.mini-cal-cell.red { background:rgba(239,68,68,0.1); color:var(--danger); }
+.mini-cal-cell.empty { background:transparent; }
+
+.month-stats { display:flex; flex-direction:column; gap:10px; }
+.month-stat-row {
+  display:flex; align-items:center; gap:10px;
+  font-size:13px;
+}
+.month-stat-icon { font-size:18px; width:28px; text-align:center; display: flex; align-items: center; justify-content: center; }
+.month-stat-text { flex:1; color:var(--text-secondary); }
+.month-stat-trend { font-size:14px; }
+
+/* Badge CSS kept for future use */
+.badge-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.badge-item {
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+  padding:16px 8px; border-radius:18px;
+  background:var(--bg-tertiary); border:1px solid var(--separator);
+  transition: all var(--transition);
+}
+.badge-item.unlocked { background: #FFFFFF; border-color: var(--separator); box-shadow: var(--card-shadow); }
+.badge-item .badge-icon { font-size:32px; margin-bottom:6px; }
+.badge-item.locked .badge-icon { filter:grayscale(1) opacity(0.4); }
+.badge-item .badge-name { font-size:11px; font-weight:600; margin-bottom:2px; }
+.badge-item .badge-desc { font-size:10px; color:var(--text-secondary); }
+.badge-glow { box-shadow: 0 0 20px rgba(91,76,219,0.1); }
+
+/* Streak CSS kept for future use */
+.streak-summary { display: flex; justify-content: space-around; margin-bottom: 4px; }
+.streak-item { text-align:center; }
+.streak-item .streak-icon { font-size:24px; }
+.streak-item .streak-num { font-family:var(--font-display); font-size:20px; font-weight:700; }
+.streak-item .streak-label { font-size:11px; color:var(--text-secondary); }
+
+.settings-group { margin-bottom: 20px; }
+.settings-group-title {
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-left: 4px;
+}
+.settings-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--separator);
+  font-size: 15px;
+}
+.setting-row:last-child { border-bottom:none; }
+.setting-label { flex:1; }
+.setting-value { color:var(--text-secondary); font-size:14px; display:flex; align-items:center; gap:6px; }
+
+.toggle {
+  width:48px; height:28px; border-radius:14px;
+  background: var(--separator);
+  position:relative; cursor:pointer;
+  transition: background var(--transition);
+}
+.toggle.on { background:var(--accent-green); }
+.toggle::after {
+  content:''; width:24px; height:24px; border-radius:50%; background:#fff;
+  position:absolute; top:2px; left:2px;
+  transition: transform var(--transition);
+}
+.toggle.on::after { transform:translateX(20px); }
+
+.connected-dot { width:8px; height:8px; border-radius:50%; background:var(--accent-green); display:inline-block; }
+.setting-row.danger .setting-label { color:var(--danger); }
+
+.mini-stepper { display:flex; align-items:center; gap:10px; }
+.mini-step-btn {
+  width:28px; height:28px; border-radius:50%;
+  border:1px solid var(--separator);
+  background:#FFFFFF;
+  color:var(--text-primary); font-size:16px;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.mini-step-val { font-weight:600; min-width:24px; text-align:center; }
+
+.seg-control-small { display:flex; background:var(--bg-secondary); border-radius:8px; padding:2px; }
+.seg-small-btn {
+  padding:6px 12px; font-size:12px; font-weight:600; border-radius:6px;
+  color:var(--text-secondary); cursor:pointer; transition:all var(--transition);
+}
+.seg-small-btn.active { background:#FFFFFF; color:var(--text-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+.about-text { text-align:center; padding:8px; font-size:13px; color:var(--text-secondary); }
+
+/* Settings gear icon */
+.screen-header-row {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px;
+}
+.settings-gear {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--bg-tertiary); display:flex; align-items:center; justify-content:center;
+}
+.settings-gear:active { transform:scale(0.9); background:var(--bg-secondary); }
+
+/* Settings overlay panel */
+.settings-panel {
+  display:none; position:absolute; top:0; left:0; right:0; bottom:0;
+  background:var(--bg-deep); z-index:100;
+  overflow-y:auto; padding:20px 16px;
+  animation:slide-in-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.settings-panel.open { display:block; }
+@keyframes slide-in-right {
+  from { transform:translateX(100%); opacity:0; }
+  to { transform:translateX(0); opacity:1; }
+}
+.settings-panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:20px;
+}
+.settings-close {
+  width:32px; height:32px; border-radius:50%;
+  background:var(--bg-secondary); display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:600; color:var(--text-secondary);
+  cursor:pointer; transition:all 0.2s ease;
+}
+.settings-close:active { transform:scale(0.9); }
+
+/* Goal cards */
+.goal-card { margin-bottom:16px; }
+.goal-header {
+  display:flex; align-items:center; gap:12px; margin-bottom:16px;
+}
+.goal-icon {
+  width:44px; height:44px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.goal-title-section { flex:1; }
+.goal-title { font-size:16px; font-weight:700; }
+.goal-subtitle { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+.goal-edit {
+  font-size:13px; color:var(--accent-purple); font-weight:600; cursor:pointer;
+}
+.goal-progress-section { margin-bottom:12px; }
+.goal-numbers {
+  display:flex; align-items:center; gap:8px; margin-bottom:8px;
+}
+.goal-current { font-size:22px; font-weight:700; }
+.goal-arrow { color:var(--text-tertiary); font-size:16px; }
+.goal-target { font-size:22px; font-weight:700; color:var(--text-secondary); }
+.goal-bar-track {
+  height:10px; border-radius:5px; background:var(--bg-tertiary);
+  overflow:hidden; margin-bottom:6px;
+}
+.goal-bar-fill {
+  height:100%; border-radius:5px;
+  transition:width 1s cubic-bezier(0.22,1,0.36,1);
+}
+.goal-meta {
+  display:flex; justify-content:space-between;
+  font-size:11px; color:var(--text-secondary);
+}
+.goal-chart-mini {
+  margin-top:8px; padding:6px;
+  background:var(--bg-tertiary); border-radius:10px; border:1px solid var(--separator);
+}
+
+/* Add Goal button */
+.add-goal-btn {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:16px; border-radius:14px;
+  border:2px dashed var(--separator); color:var(--accent-purple);
+  font-size:15px; font-weight:600; cursor:pointer;
+  transition:all 0.2s ease;
+}
+.add-goal-btn:active { transform:scale(0.98); background:var(--tint-purple); }
+
+.meal-log-list { list-style:none; }
+.meal-log-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 0; font-size:13px;
+  border-bottom:1px solid var(--bg-tertiary);
+}
+.meal-log-item:last-child { border-bottom:none; }
+.meal-log-name { flex:1; }
+.meal-log-kcal { color:var(--text-secondary); font-size:12px; }
+.meal-log-item.pending { color:var(--text-tertiary); font-style:italic; }
+
+/* Meal groups */
+.meal-group { margin-bottom:12px; }
+.meal-group:last-of-type { margin-bottom:14px; }
+.meal-group-header {
+  font-size:12px; font-weight:700; color:var(--text-secondary);
+  margin-bottom:4px; padding-bottom:2px;
+}
+.meal-group-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:5px 0 5px 8px; font-size:13px;
+  border-left:2px solid var(--tint-purple);
+  position:relative;
+}
+.meal-group-item.pending { color:var(--text-tertiary); font-style:italic; border-left-color:var(--separator); }
+.meal-item-delete {
+  width:20px; height:20px; border-radius:50%;
+  background:rgba(239,68,68,0.08); border:none;
+  color:var(--danger); font-size:14px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  opacity:0.5; transition:all 0.2s; margin-left:8px; flex-shrink:0;
+}
+.meal-item-delete:hover, .meal-item-delete:active { opacity:1; background:rgba(239,68,68,0.15); transform:scale(1.1); }
+
+/* Snacking summary in Calories card */
+.snack-summary {
+  margin-top:12px; padding:10px 14px; border-radius:12px;
+  background:#FEF2F2; border:1px solid rgba(239,68,68,0.1);
+  display:flex; align-items:center; gap:10px;
+}
+.snack-summary-icon { font-size:20px; }
+.snack-summary-info { flex:1; }
+.snack-summary-label { font-size:12px; font-weight:600; color:var(--text-secondary); }
+.snack-summary-value { font-size:14px; font-weight:700; color:var(--accent-green); }
+.snack-summary-value.bad { color:var(--danger); }
+
+/* Weight chart */
+.weight-chart-wrap {
+  margin:10px 0; padding:4px;
+  background:var(--bg-tertiary); border-radius:12px;
+  border:1px solid var(--separator);
+}
+.weight-chart { width:100%; height:auto; display:block; }
+
+/* Today exercise card */
+.today-exercise-card {
+  display:flex; align-items:center; gap:12px;
+  padding:12px; border-radius:12px;
+  background:var(--tint-blue); border:1px solid rgba(91,76,219,0.12);
+}
+.today-ex-icon { font-size:24px; }
+.today-ex-info { flex:1; }
+.today-ex-status { font-size:20px; color:var(--text-tertiary); }
+.today-ex-status.done { color:var(--success); }
+
+/* Weekly workout dots */
+.weekly-workout-dots { display:flex; gap:6px; }
+.ww-dot {
+  width:28px; height:28px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px;
+}
+.ww-dot.filled { background:var(--tint-purple); }
+.ww-dot.empty {
+  background:var(--bg-tertiary); color:var(--text-tertiary);
+  border:1px dashed var(--separator);
+}
+
+.weight-section { margin-top:14px; padding-top:12px; border-top:1px solid var(--bg-tertiary); }
+.weight-headline { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; margin-bottom:6px; }
+.weight-trend { font-size:13px; color:var(--accent-green); font-weight:500; }
+.weight-sparkline { font-size:12px; color:var(--text-secondary); margin-bottom:6px; }
+.weight-goal { font-size:13px; color:var(--text-secondary); margin-bottom:8px; }
+.weight-progress-bar {
+  height:8px; border-radius:4px;
+  background:var(--bg-tertiary);
+}
+.weight-progress-fill {
+  height:100%; border-radius:4px;
+  background:linear-gradient(90deg, var(--accent-purple), #7C6FE3);
+  transition:width 1.2s cubic-bezier(0.22,1,0.36,1);
+  width:0;
+}
+.cal-avg-badge {
+  display:inline-block; font-size:12px; font-weight:600;
+  padding:5px 12px; border-radius:12px;
+  background:var(--tint-purple); border:1px solid rgba(91,76,219,0.2);
+  color:var(--accent-purple);
+}
+
+.weight-readout { text-align:center; margin-bottom:16px; }
+.weight-readout .weight-value {
+  font-family:var(--font-display); font-size:48px; font-weight:700; letter-spacing:-1px;
+}
+.weight-readout .weight-unit { font-size:20px; font-weight:500; color:var(--text-secondary); }
+.weight-adjust {
+  display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:16px;
+}
+.weight-adj-btn {
+  width:44px; height:44px; border-radius:50%;
+  border:1px solid rgba(91,76,219,0.2); background:var(--tint-purple);
+  color:var(--accent-purple); font-size:20px; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all var(--transition);
+}
+.weight-adj-btn:active { transform:scale(0.9); background:rgba(91,76,219,0.15); }
+.weight-history-list { list-style:none; margin-top:16px; }
+.weight-history-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; font-size:14px;
+  border-bottom:1px solid var(--bg-tertiary);
+}
+.weight-history-item:last-child { border-bottom:none; }
+.weight-history-date { color:var(--text-secondary); }
+.weight-history-val { font-weight:600; }
+
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-circumference); }
+  to { stroke-dashoffset: var(--ring-target); }
+}
+@keyframes bar-fill { from { width: 0; } }
+
+.footer-note {
+  font-size: 12px; color: var(--text-secondary); margin-top: 16px;
+  text-align: center; max-width: 360px; line-height: 1.5;
+}
+
+.overview-sub { display:none; }
+.overview-sub.active { display:block; animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+.week-option { display:none; }
+.week-option.active { display:block; animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* Yellow dot removed */
+</style>
+</head>
+<body>
+
+<div class="page-title">Habit Tracker</div>
+<div class="page-subtitle">Design Mockup — Click tabs to navigate</div>
+
+<div class="phone-frame">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <span class="icons">
+      <svg viewBox="0 0 17 12"><path d="M1.5 4C3.1 2.4 5.45 1.5 8 1.5s4.9.9 6.5 2.5l-1.4 1.4C11.7 4 9.95 3.3 8 3.3S4.3 4 2.9 5.4L1.5 4zM5 7.5C5.8 6.7 6.85 6.2 8 6.2s2.2.5 3 1.3l-1.4 1.4c-.4-.4-1-.7-1.6-.7s-1.2.3-1.6.7L5 7.5zM8 10.5a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="3" height="10" rx="0.5" fill="rgba(28,28,30,0.3)"/><rect x="5" y="1" width="3" height="10" rx="0.5" fill="rgba(28,28,30,0.4)"/><rect x="10" y="1" width="3" height="10" rx="0.5" fill="rgba(28,28,30,0.6)"/><rect x="15" y="1" width="3" height="10" rx="0.5" fill="#1C1C1E"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="20" height="10" rx="2" stroke="#1C1C1E" stroke-width="1" fill="none"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="#10B981"/><rect x="21" y="4" width="3" height="4" rx="1" fill="rgba(28,28,30,0.3)"/></svg>
+    </span>
+  </div>
+
+  <div class="content-area">
+
+    <!-- LOG SCREEN -->
+    <div id="screen-log" class="screen">
+      <h1 class="screen-header">Log</h1>
+      <div class="segmented-control" id="log-seg">
+        <div class="seg-slider" id="log-slider"></div>
+        <div class="seg-btn active" data-seg="log-food" onclick="switchLogSeg(this)">Food</div>
+        <div class="seg-btn" data-seg="log-drinks" onclick="switchLogSeg(this)">Drink</div>
+        <div class="seg-btn" data-seg="log-weight" onclick="switchLogSeg(this)">Weight</div>
+      </div>
+
+      <!-- Food (Meal or Snack) -->
+      <div id="log-food" class="log-section active">
+        <div class="log-date-bar" id="food-date-bar">
+          <div class="log-date-nav-btn" onclick="shiftDate('food',-1)">‹</div>
+          <div class="log-date-center" onclick="openDatePicker('food')">
+            <div id="food-date-text">Today</div>
+            <div class="date-sub">Fri, 25 Apr 2026</div>
+          </div>
+          <div class="log-date-nav-btn" onclick="shiftDate('food',1)">›</div>
+        </div>
+        <div class="meal-type-tabs">
+          <div class="meal-tab active" onclick="selectMealTab(this)">Meal</div>
+          <div class="meal-tab snack-tab" onclick="selectMealTab(this)">Snack</div>
+        </div>
+
+        <!-- Meal input -->
+        <div id="meal-input-section">
+          <div class="input-group">
+            <label class="input-label">Meal Type</label>
+            <div class="meal-type-selector">
+              <div class="meal-type-option active" onclick="selectMealType(this)">Breakfast</div>
+              <div class="meal-type-option" onclick="selectMealType(this)">Lunch</div>
+              <div class="meal-type-option" onclick="selectMealType(this)">Dinner</div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Input Method</label>
+            <div class="meal-type-selector">
+              <div class="meal-type-option active" onclick="selectMealMode(this, 'manual')">Manual</div>
+              <div class="meal-type-option" onclick="selectMealMode(this, 'photo')">Photo</div>
+            </div>
+          </div>
+
+          <!-- Manual input mode -->
+          <div id="meal-mode-manual">
+            <div class="input-group">
+              <label class="input-label">What did you eat?</label>
+              <input type="text" class="input-field" placeholder="e.g. Grilled chicken with rice">
+            </div>
+            <div class="input-group" style="margin-top:8px;">
+              <label class="input-label">Calories (kcal)</label>
+              <input type="number" class="input-field" placeholder="e.g. 520" style="width:120px;" id="meal-manual-kcal">
+            </div>
+          </div>
+
+          <!-- Photo input mode -->
+          <div id="meal-mode-photo" style="display:none;">
+            <div class="camera-btn" onclick="this.style.opacity=0.5">
+              <span style="font-size:18px;">📷</span>
+              Take Photo for AI estimate
+            </div>
+            <div class="ai-result" style="margin-top:16px;">
+              <h4>✨ AI Analysis</h4>
+              <p style="font-size:15px;color:var(--text-primary);font-weight:500;">Grilled chicken with rice and salad</p>
+              <p>Estimated: ~520 kcal</p>
+              <div style="margin-top:8px;"><span class="ai-tag">✅ Healthy</span></div>
+              <span class="ai-edit-link">Edit estimate →</span>
+            </div>
+          </div>
+
+          <button class="btn-primary btn-green">Save Meal</button>
+        </div>
+
+        <!-- Snack input (shown when Snack tab active) -->
+        <div id="snack-input-section" style="display:none;">
+          <div class="warning-banner">⚠️ Logging a weekday snack will break your eating streak this week</div>
+          <div class="input-group">
+            <label class="input-label">Quick Picks</label>
+            <div class="chip-scroll">
+              <div class="chip" onclick="selectChipGroup(this,'snack-chips')">🥔 Crisps</div>
+              <div class="chip" onclick="selectChipGroup(this,'snack-chips')">🍫 Chocolate</div>
+              <div class="chip" onclick="selectChipGroup(this,'snack-chips')">🥜 Nuts</div>
+              <div class="chip" onclick="selectChipGroup(this,'snack-chips')">🍪 Biscuits</div>
+              <div class="chip" onclick="selectChipGroup(this,'snack-chips')">Other</div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Or describe it</label>
+            <input type="text" class="input-field" placeholder="e.g. Chocolate bar">
+          </div>
+          <div class="input-group" style="margin-top:8px;">
+            <label class="input-label">Calories (kcal)</label>
+            <input type="number" class="input-field" placeholder="e.g. 250" style="width:120px;">
+          </div>
+          <button class="btn-primary btn-danger">Log Snack</button>
+        </div>
+      </div>
+
+      <div id="log-drinks" class="log-section">
+        <div class="log-date-bar" id="drink-date-bar">
+          <div class="log-date-nav-btn" onclick="shiftDate('drink',-1)">‹</div>
+          <div class="log-date-center" onclick="openDatePicker('drink')">
+            <div id="drink-date-text">Today</div>
+            <div class="date-sub">Fri, 25 Apr 2026</div>
+          </div>
+          <div class="log-date-nav-btn" onclick="shiftDate('drink',1)">›</div>
+        </div>
+
+        <div class="drink-grid">
+          <div class="drink-type-btn" onclick="selectDrink(this, 2.3, 182)"><span class="drink-emoji">🍺</span><span class="drink-name">Beer</span><span class="drink-detail">2.3u · 182 kcal</span></div>
+          <div class="drink-type-btn" onclick="selectDrink(this, 2.1, 158)"><span class="drink-emoji">🍷</span><span class="drink-name">Wine</span><span class="drink-detail">2.1u · 158 kcal</span></div>
+          <div class="drink-type-btn" onclick="selectDrink(this, 1.0, 61)"><span class="drink-emoji">🥃</span><span class="drink-name">Spirit</span><span class="drink-detail">1.0u · 61 kcal</span></div>
+          <div class="drink-type-btn" onclick="selectDrink(this, 2.0, 180)"><span class="drink-emoji">🍹</span><span class="drink-name">Cocktail</span><span class="drink-detail">2.0u · 180 kcal</span></div>
+          <div class="drink-type-btn" onclick="selectDrink(this, 2.6, 210)"><span class="drink-emoji">🍏</span><span class="drink-name">Cider</span><span class="drink-detail">2.6u · 210 kcal</span></div>
+          <div class="drink-type-btn" onclick="selectDrink(this, 1.5, 100)"><span class="drink-emoji">🥤</span><span class="drink-name">Other</span><span class="drink-detail">— · — kcal</span></div>
+        </div>
+
+        <!-- Quantity stepper - modernized -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:20px;padding:16px;border-radius:20px;background:var(--card-bg);box-shadow:0 2px 12px rgba(0,0,0,0.04);margin-bottom:16px;">
+          <div class="step-btn" onclick="changeDrinkQty(-1)" style="border:none;background:var(--bg-tertiary);width:48px;height:48px;font-size:24px;">−</div>
+          <div style="text-align:center;">
+            <div class="step-value" id="drink-qty" style="font-size:36px;">1</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">drinks</div>
+          </div>
+          <div class="step-btn" onclick="changeDrinkQty(1)" style="border:none;background:var(--accent-purple);color:#fff;width:48px;height:48px;font-size:24px;box-shadow:0 4px 14px rgba(91,76,219,0.25);">+</div>
+        </div>
+
+        <!-- Session total -->
+        <div class="drink-summary">
+          <div class="session-total" id="session-total">This session: 2.3 units · 182 kcal</div>
+        </div>
+
+        <button class="btn-primary btn-amber">Add Drinks</button>
+      </div>
+
+      <div id="log-weight" class="log-section">
+        <div class="log-date-bar" id="weight-date-bar">
+          <div class="log-date-nav-btn" onclick="shiftDate('weight',-1)">‹</div>
+          <div class="log-date-center" onclick="openDatePicker('weight')">
+            <div id="weight-date-text">Today</div>
+            <div class="date-sub">Fri, 25 Apr 2026</div>
+          </div>
+          <div class="log-date-nav-btn" onclick="shiftDate('weight',1)">›</div>
+        </div>
+        <div class="weight-readout">
+          <span class="weight-value" id="weight-val">96.1</span>
+          <span class="weight-unit">kg</span>
+        </div>
+        <div class="weight-adjust">
+          <div class="weight-adj-btn" onclick="adjustWeight(-0.1)">−</div>
+          <div style="font-size:12px;color:var(--text-secondary);">± 0.1 kg</div>
+          <div class="weight-adj-btn" onclick="adjustWeight(0.1)">+</div>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;margin-bottom:8px;">Recent entries</div>
+        <ul class="weight-history-list">
+          <li class="weight-history-item"><span class="weight-history-date">Apr 21</span><span class="weight-history-val">96.1 kg</span></li>
+          <li class="weight-history-item"><span class="weight-history-date">Apr 14</span><span class="weight-history-val">96.5 kg</span></li>
+          <li class="weight-history-item"><span class="weight-history-date">Apr 7</span><span class="weight-history-val">96.8 kg</span></li>
+          <li class="weight-history-item"><span class="weight-history-date">Mar 31</span><span class="weight-history-val">97.0 kg</span></li>
+        </ul>
+        <button class="btn-primary btn-purple">Save Weight</button>
+      </div>
+    </div>
+
+    <!-- OVERVIEW SCREEN (default) -->
+    <div id="screen-overview" class="screen active">
+      <div class="screen-header-row">
+        <h1 class="screen-header" style="margin-bottom:0;">Overview</h1>
+        <div class="settings-gear" onclick="toggleSettingsPanel()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+      </div>
+
+      <!-- Settings overlay panel -->
+      <div id="settings-panel" class="settings-panel">
+        <div class="settings-panel-header">
+          <h2 style="font-size:18px;font-weight:700;">Settings</h2>
+          <div class="settings-close" onclick="toggleSettingsPanel()">✕</div>
+        </div>
+
+    <!-- SETTINGS (now inside overview as overlay) -->
+
+      <div class="settings-group">
+        <div class="settings-group-title">Strava</div>
+        <div class="settings-card">
+          <div class="setting-row"><span class="setting-label"><span class="connected-dot"></span> Connected as Frederic</span><span class="setting-value" style="color:var(--danger);cursor:pointer;font-size:13px;">Disconnect</span></div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">Notifications</div>
+        <div class="settings-card">
+          <div class="setting-row"><span class="setting-label">Morning reminder</span><span class="setting-value"><span style="font-size:13px;color:var(--text-tertiary);">8:00 AM</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></span></div>
+          <div class="setting-row"><span class="setting-label">Evening reminder</span><span class="setting-value"><span style="font-size:13px;color:var(--text-tertiary);">9:00 PM</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></span></div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">Weekly Targets</div>
+        <div class="settings-card">
+          <div class="setting-row"><span class="setting-label">Workouts per week</span><span class="setting-value"><div class="mini-stepper"><div class="mini-step-btn" onclick="miniStep(this,-1)">−</div><span class="mini-step-val">4</span><div class="mini-step-btn" onclick="miniStep(this,1)">+</div></div></span></div>
+          <div class="setting-row"><span class="setting-label">Max alcohol units</span><span class="setting-value"><div class="mini-stepper"><div class="mini-step-btn" onclick="miniStep(this,-1)">−</div><span class="mini-step-val">17</span><div class="mini-step-btn" onclick="miniStep(this,1)">+</div></div></span></div>
+          <div class="setting-row"><span class="setting-label">Daily calorie target</span><span class="setting-value"><div class="mini-stepper"><div class="mini-step-btn" onclick="miniStep(this,-100)">−</div><span class="mini-step-val">2300</span><div class="mini-step-btn" onclick="miniStep(this,100)">+</div></div></span></div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">Appearance</div>
+        <div class="settings-card">
+          <div class="setting-row"><span class="setting-label">Theme</span><span class="setting-value"><div class="seg-control-small"><span class="seg-small-btn active" onclick="themeSelect(this)">Dark</span><span class="seg-small-btn" onclick="themeSelect(this)">Light</span><span class="seg-small-btn" onclick="themeSelect(this)">System</span></div></span></div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">Data</div>
+        <div class="settings-card">
+          <div class="setting-row" style="cursor:pointer;"><span class="setting-label">Export Data (JSON)</span><span class="setting-value" style="color:var(--accent-blue);">↗</span></div>
+          <div class="setting-row danger" style="cursor:pointer;"><span class="setting-label">Reset All Data</span></div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">About</div>
+        <div class="settings-card">
+          <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">1.0.0</span></div>
+        </div>
+        <div class="about-text" style="margin-top:10px;">Made with ❤️</div>
+      </div>
+      </div><!-- end settings-panel -->
+
+      <div class="segmented-control" id="overview-seg">
+        <div class="seg-slider" id="overview-slider"></div>
+        <div class="seg-btn active" data-seg="ov-day" onclick="switchOverviewSeg(this)">Day</div>
+        <div class="seg-btn" data-seg="ov-week" onclick="switchOverviewSeg(this)">Week</div>
+        <div class="seg-btn" data-seg="ov-month" onclick="switchOverviewSeg(this)">Month</div>
+      </div>
+
+      <!-- DAY VIEW -->
+      <div id="ov-day" class="overview-sub active">
+        <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin:4px 0 12px;">Today — Friday, Apr 25</div>
+
+        <!-- Meals -->
+        <div class="glass-card" style="border:none;">
+          <div class="card-header"><span class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c0-3 2.5-6 2.5-9 4 3.5 7.5 7.5 7.5 12a10 10 0 1 1-20 0c0-4.5 3.5-8.5 7.5-12 0 3 2.5 6 2.5 9z"/></svg> Calories &amp; Weight</span></div>
+          <div class="ring-container">
+            <div class="progress-ring-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" stroke="var(--tint-purple)" stroke-width="6" fill="none"/>
+                <circle class="ring-progress" cx="36" cy="36" r="30" stroke="var(--accent-purple)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-target="67.1"/>
+              </svg>
+              <div class="ring-text" style="font-size:16px;">1480<small style="font-size:10px;"> kcal</small></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;">820 kcal remaining today</div>
+              <div style="font-size:11px;color:var(--accent-purple);font-weight:600;margin-top:4px;opacity:0.8;">↳ Avg 2,180 kcal/day this week</div>
+            </div>
+          </div>
+
+          <div class="meal-group">
+            <div class="meal-group-header" style="color:var(--text-tertiary);">Dinner</div>
+            <div class="meal-group-item pending"><span class="meal-log-name">Not logged yet</span><span class="meal-log-kcal">—</span></div>
+          </div>
+          <div class="meal-group">
+            <div class="meal-group-header">Lunch</div>
+            <div class="meal-group-item"><span class="meal-log-name">Grilled chicken &amp; rice</span><span class="meal-log-kcal">620 kcal</span><button class="meal-item-delete" onclick="this.parentElement.style.display='none'">×</button></div>
+            <div class="meal-group-item"><span class="meal-log-name">Side salad</span><span class="meal-log-kcal">80 kcal</span><button class="meal-item-delete" onclick="this.parentElement.style.display='none'">×</button></div>
+          </div>
+          <div class="meal-group">
+            <div class="meal-group-header">Breakfast</div>
+            <div class="meal-group-item"><span class="meal-log-name">Oatmeal with banana</span><span class="meal-log-kcal">380 kcal</span><button class="meal-item-delete" onclick="this.parentElement.style.display='none'">×</button></div>
+          </div>
+          <div class="meal-group">
+            <div class="meal-group-header" style="color:var(--danger);">Snacks</div>
+            <div class="meal-group-item" style="border-left-color:rgba(239,68,68,0.3);"><span class="meal-log-name" style="color:var(--text-tertiary);font-style:italic;">No snacks today</span><span class="meal-log-kcal">0 kcal</span></div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg> Exercise</span></div>
+          <div class="ring-container">
+            <div class="progress-ring-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" stroke="var(--tint-blue)" stroke-width="6" fill="none"/>
+                <circle class="ring-progress" cx="36" cy="36" r="30" stroke="var(--accent-blue)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-target="47.1"/>
+              </svg>
+              <div class="ring-text" style="font-size:18px;">3<small style="font-size:11px;">/4</small></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;">1 workout remaining</div>
+              <div style="font-size:11px;color:var(--accent-blue);font-weight:600;margin-top:4px;opacity:0.8;">↳ Rest day — 30 min walk needed</div>
+            </div>
+          </div>
+          <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--bg-tertiary);">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="weekly-workout-dots">
+                <span class="ww-dot filled">🏃</span>
+                <span class="ww-dot filled">🤸</span>
+                <span class="ww-dot filled">🏋️</span>
+                <span class="ww-dot empty">○</span>
+              </div>
+              <span style="font-size:13px;color:var(--accent-blue);font-weight:600;">This week</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/><path d="M14.5 8.5c0-1.38-1.12-2.5-2.5-2.5S9.5 7.12 9.5 8.5c0 2.5 5 2.5 5 5 0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5"/></svg> No Snacking</span></div>
+          <div class="ring-container">
+            <div class="progress-ring-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" stroke="var(--tint-green)" stroke-width="6" fill="none"/>
+                <circle class="ring-progress" cx="36" cy="36" r="30" stroke="var(--accent-green)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-target="37.7"/>
+              </svg>
+              <div class="ring-text" style="font-size:18px;">4<small style="font-size:11px;">/5</small></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;">Not snacked today ✅</div>
+              <div style="font-size:11px;color:var(--accent-green);font-weight:600;margin-top:4px;opacity:0.8;">↳ Clean until Sunday for Snack Pass!</div>
+            </div>
+          </div>
+          <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--bg-tertiary);">
+            <div class="eating-days">
+              <div class="eat-pill"><span class="day-label">Mon</span><span class="day-status">✅</span></div>
+              <div class="eat-pill"><span class="day-label">Tue</span><span class="day-status">✅</span></div>
+              <div class="eat-pill"><span class="day-label">Wed</span><span class="day-status">✅</span></div>
+              <div class="eat-pill"><span class="day-label">Thu</span><span class="day-status">✅</span></div>
+              <div class="eat-pill today"><span class="day-label">Fri</span><span class="day-status">○</span></div>
+            </div>
+          </div>
+          <div class="snack-pass-toggle" onclick="toggleSnackPass()">▸ Preview Weekend Snack Pass</div>
+          <div id="snack-pass" class="snack-pass-card">
+            <div style="font-size:24px;margin-bottom:6px;">🎉</div>
+            <div style="font-weight:700;font-size:16px;margin-bottom:4px;">Weekend Snack Pass UNLOCKED!</div>
+            <div style="font-size:13px;color:var(--text-secondary);">You earned it — enjoy your weekend treats!</div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8l-1 7c-.3 2.2-2.1 4-4.5 4h-1C7.1 13 5.3 11.2 5 9L4 2"/><line x1="12" y1="13" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg> Alcohol</span></div>
+          <div class="ring-container">
+            <div class="progress-ring-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" stroke="var(--tint-amber)" stroke-width="6" fill="none"/>
+                <circle class="ring-progress" cx="36" cy="36" r="30" stroke="var(--accent-amber)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-target="63.2"/>
+              </svg>
+              <div class="ring-text" style="font-size:14px;">11.3<small style="font-size:9px;">u</small></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;">5.7 units remaining</div>
+              <div style="font-size:11px;color:var(--accent-amber);font-weight:600;margin-top:4px;opacity:0.8;">↳ 920 kcal from alcohol this week</div>
+            </div>
+          </div>
+          <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--bg-tertiary);">
+            <div class="drink-chips">
+              <div class="drink-chip">🍺 ×4 <span style="color:var(--text-secondary);font-size:11px;">9.2u</span></div>
+              <div class="drink-chip">🍷 ×1 <span style="color:var(--text-secondary);font-size:11px;">2.1u</span></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- end ov-day -->
+
+      <!-- WEEK VIEW — progress tracking -->
+      <div id="ov-week" class="overview-sub">
+        <div class="glass-card">
+          <div class="week-nav">
+            <div class="week-nav-btn" onclick="this.style.opacity=0.5">‹</div>
+            <div class="week-nav-title">Apr 21 – Apr 27</div>
+            <div class="week-nav-btn" style="opacity:0.3;pointer-events:none;">›</div>
+          </div>
+
+          <div class="week-grid">
+            <div class="wg-label-cell"></div>
+            <div class="wg-day-header" style="cursor:pointer;">Mon</div>
+            <div class="wg-day-header" style="cursor:pointer;">Tue</div>
+            <div class="wg-day-header" style="cursor:pointer;">Wed</div>
+            <div class="wg-day-header" style="cursor:pointer;">Thu</div>
+            <div class="wg-day-header today" style="cursor:pointer;">Fri</div>
+            <div class="wg-day-header future" style="cursor:pointer;">Sat</div>
+            <div class="wg-day-header future" style="cursor:pointer;">Sun</div>
+
+            <!-- Calories row -->
+            <div class="wg-label-cell"><span class="wg-tracker-name">Cal</span></div>
+            <div class="wg-cell cal-good"><span class="wg-val">2,180</span></div>
+            <div class="wg-cell cal-good"><span class="wg-val">2,050</span></div>
+            <div class="wg-cell cal-bad"><span class="wg-val">2,520</span></div>
+            <div class="wg-cell cal-good"><span class="wg-val">2,100</span></div>
+            <div class="wg-cell cal-inprogress"><span class="wg-val">1,480</span></div>
+            <div class="wg-cell cal-future"><span class="wg-val">—</span></div>
+            <div class="wg-cell cal-future"><span class="wg-val">—</span></div>
+
+            <!-- Exercise row -->
+            <div class="wg-label-cell"><span class="wg-tracker-name">Exercise</span></div>
+            <div class="wg-cell ex-yes"><span class="wg-val">🏃 45m</span></div>
+            <div class="wg-cell ex-no"><span class="wg-val">Rest</span></div>
+            <div class="wg-cell ex-yes"><span class="wg-val">🤸 60m</span></div>
+            <div class="wg-cell ex-yes"><span class="wg-val">🏋️ 50m</span></div>
+            <div class="wg-cell ex-inprogress"><span class="wg-val">—</span></div>
+            <div class="wg-cell ex-future"><span class="wg-val">—</span></div>
+            <div class="wg-cell ex-future"><span class="wg-val">—</span></div>
+
+            <!-- Snacking row -->
+            <div class="wg-label-cell"><span class="wg-tracker-name">Snacking</span></div>
+            <div class="wg-cell eat-clean"><span class="wg-val">✓ Clean</span></div>
+            <div class="wg-cell eat-clean"><span class="wg-val">✓ Clean</span></div>
+            <div class="wg-cell eat-clean"><span class="wg-val">✓ Clean</span></div>
+            <div class="wg-cell eat-clean"><span class="wg-val">✓ Clean</span></div>
+            <div class="wg-cell eat-inprogress"><span class="wg-val">○</span></div>
+            <div class="wg-cell eat-future"><span class="wg-val">—</span></div>
+            <div class="wg-cell eat-future"><span class="wg-val">—</span></div>
+
+            <!-- Alcohol row -->
+            <div class="wg-label-cell"><span class="wg-tracker-name">Alcohol</span></div>
+            <div class="wg-cell alc-none"><span class="wg-val">0u</span></div>
+            <div class="wg-cell alc-low"><span class="wg-val">4.6u</span></div>
+            <div class="wg-cell alc-none"><span class="wg-val">0u</span></div>
+            <div class="wg-cell alc-med"><span class="wg-val">4.6u</span></div>
+            <div class="wg-cell alc-low"><span class="wg-val">2.1u</span></div>
+            <div class="wg-cell alc-future"><span class="wg-val">—</span></div>
+            <div class="wg-cell alc-future"><span class="wg-val">—</span></div>
+
+            <!-- Separator before ratings -->
+            <div style="grid-column:1/-1;height:1px;background:var(--separator);margin:4px 0;opacity:0.5;"></div>
+
+            <!-- Day rating row -->
+            <div class="wg-label-cell"><span class="wg-tracker-name" style="font-size:10px;">Rating</span></div>
+            <div class="wg-cell wg-rating-cell"><div class="wg-rating green"></div></div>
+            <div class="wg-cell wg-rating-cell"><div class="wg-rating amber"></div></div>
+            <div class="wg-cell wg-rating-cell"><div class="wg-rating amber"></div></div>
+            <div class="wg-cell wg-rating-cell"><div class="wg-rating green"></div></div>
+            <div class="wg-cell wg-rating-cell"><div class="wg-rating none"></div></div>
+            <div class="wg-cell wg-rating-cell"><div class="wg-rating none"></div></div>
+            <div class="wg-cell wg-rating-cell"><div class="wg-rating none"></div></div>
+          </div>
+        </div>
+
+        <!-- Donut progress rings — weekly goals -->
+        <div class="glass-card" style="border:none;">
+          <div class="card-header"><span class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c0-3 2.5-6 2.5-9 4 3.5 7.5 7.5 7.5 12a10 10 0 1 1-20 0c0-4.5 3.5-8.5 7.5-12 0 3 2.5 6 2.5 9z"/></svg> Calories</span></div>
+          <div class="ring-container">
+            <div class="progress-ring-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" stroke="var(--tint-purple)" stroke-width="6" fill="none"/>
+                <circle class="ring-progress" cx="36" cy="36" r="30" stroke="var(--accent-purple)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-target="67.1"/>
+              </svg>
+              <div class="ring-text" style="font-size:14px;">2,180<small style="font-size:9px;"> avg</small></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;">Avg 2,180 kcal/day</div>
+              <div style="font-size:11px;color:var(--accent-purple);font-weight:600;margin-top:4px;opacity:0.8;">↳ Target: 2,300 kcal · 1 day over</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg> Exercise</span></div>
+          <div class="ring-container">
+            <div class="progress-ring-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" stroke="var(--tint-blue)" stroke-width="6" fill="none"/>
+                <circle class="ring-progress" cx="36" cy="36" r="30" stroke="var(--accent-blue)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-target="47.1"/>
+              </svg>
+              <div class="ring-text" style="font-size:18px;">3<small style="font-size:11px;">/4</small></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;">1 workout remaining</div>
+              <div style="font-size:11px;color:var(--accent-blue);font-weight:600;margin-top:4px;opacity:0.8;">↳ 2 days left this week</div>
+            </div>
+          </div>
+          <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--bg-tertiary);">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="weekly-workout-dots">
+                <span class="ww-dot filled">🏃</span>
+                <span class="ww-dot filled">🤸</span>
+                <span class="ww-dot filled">🏋️</span>
+                <span class="ww-dot empty">○</span>
+              </div>
+              <span style="font-size:13px;color:var(--accent-blue);font-weight:600;">This week</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/><path d="M14.5 8.5c0-1.38-1.12-2.5-2.5-2.5S9.5 7.12 9.5 8.5c0 2.5 5 2.5 5 5 0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5"/></svg> No Snacking</span></div>
+          <div class="ring-container">
+            <div class="progress-ring-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" stroke="var(--tint-green)" stroke-width="6" fill="none"/>
+                <circle class="ring-progress" cx="36" cy="36" r="30" stroke="var(--accent-green)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-target="37.7"/>
+              </svg>
+              <div class="ring-text" style="font-size:18px;">4<small style="font-size:11px;">/5</small></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;">4 of 5 weekdays clean</div>
+              <div style="font-size:11px;color:var(--accent-green);font-weight:600;margin-top:4px;opacity:0.8;">↳ Clean until Sunday for Snack Pass!</div>
+            </div>
+          </div>
+          <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--bg-tertiary);">
+            <div class="eating-days">
+              <div class="eat-pill"><span class="day-label">Mon</span><span class="day-status">✅</span></div>
+              <div class="eat-pill"><span class="day-label">Tue</span><span class="day-status">✅</span></div>
+              <div class="eat-pill"><span class="day-label">Wed</span><span class="day-status">✅</span></div>
+              <div class="eat-pill"><span class="day-label">Thu</span><span class="day-status">✅</span></div>
+              <div class="eat-pill today"><span class="day-label">Fri</span><span class="day-status">○</span></div>
+            </div>
+          </div>
+          <div class="snack-pass-toggle" onclick="toggleSnackPass()">▸ Preview Weekend Snack Pass</div>
+          <div id="snack-pass" class="snack-pass-card">
+            <div style="font-size:24px;margin-bottom:6px;">🎉</div>
+            <div style="font-weight:700;font-size:16px;margin-bottom:4px;">Weekend Snack Pass UNLOCKED!</div>
+            <div style="font-size:13px;color:var(--text-secondary);">You earned it — enjoy your weekend treats!</div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8l-1 7c-.3 2.2-2.1 4-4.5 4h-1C7.1 13 5.3 11.2 5 9L4 2"/><line x1="12" y1="13" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg> Alcohol</span></div>
+          <div class="ring-container">
+            <div class="progress-ring-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" stroke="var(--tint-amber)" stroke-width="6" fill="none"/>
+                <circle class="ring-progress" cx="36" cy="36" r="30" stroke="var(--accent-amber)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-target="63.2"/>
+              </svg>
+              <div class="ring-text" style="font-size:14px;">11.3<small style="font-size:9px;">u</small></div>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;">5.7 units remaining</div>
+              <div style="font-size:11px;color:var(--accent-amber);font-weight:600;margin-top:4px;opacity:0.8;">↳ 920 kcal from alcohol this week</div>
+            </div>
+          </div>
+          <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--bg-tertiary);">
+            <div class="drink-chips">
+              <div class="drink-chip">🍺 ×4 <span style="color:var(--text-secondary);font-size:11px;">9.2u</span></div>
+              <div class="drink-chip">🍷 ×1 <span style="color:var(--text-secondary);font-size:11px;">2.1u</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weight chart -->
+        <div class="glass-card">
+          <div class="weight-headline">This week: 96.1 kg <span class="weight-trend">↓ 0.4kg</span></div>
+          <div class="weight-chart-wrap">
+            <svg class="weight-chart" viewBox="0 0 280 100" preserveAspectRatio="none">
+              <line x1="0" y1="10" x2="280" y2="10" stroke="var(--separator)" stroke-width="0.5" stroke-dasharray="4,4"/>
+              <line x1="0" y1="37" x2="280" y2="37" stroke="var(--separator)" stroke-width="0.5" stroke-dasharray="4,4"/>
+              <line x1="0" y1="64" x2="280" y2="64" stroke="var(--separator)" stroke-width="0.5" stroke-dasharray="4,4"/>
+              <line x1="0" y1="90" x2="280" y2="90" stroke="var(--separator)" stroke-width="0.5" stroke-dasharray="4,4"/>
+              <text x="2" y="8" font-size="8" fill="var(--text-secondary)" font-family="Inter,-apple-system,sans-serif">97.5</text>
+              <text x="2" y="35" font-size="8" fill="var(--text-secondary)" font-family="Inter,-apple-system,sans-serif">97.0</text>
+              <text x="2" y="62" font-size="8" fill="var(--text-secondary)" font-family="Inter,-apple-system,sans-serif">96.5</text>
+              <text x="2" y="88" font-size="8" fill="var(--text-secondary)" font-family="Inter,-apple-system,sans-serif">96.0</text>
+              <line x1="0" y1="95" x2="280" y2="95" stroke="var(--accent-purple)" stroke-width="1" stroke-dasharray="6,3" opacity="0.4"/>
+              <text x="240" y="93" font-size="7" fill="var(--accent-purple)" font-family="Inter,-apple-system,sans-serif">Goal: 93kg</text>
+              <defs>
+                <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--accent-purple)" stop-opacity="0.2"/>
+                  <stop offset="100%" stop-color="var(--accent-purple)" stop-opacity="0.02"/>
+                </linearGradient>
+              </defs>
+              <path d="M40,15 L110,25 L180,50 L250,75 L250,100 L40,100 Z" fill="url(#weightGrad)"/>
+              <polyline points="40,15 110,25 180,50 250,75" fill="none" stroke="var(--accent-purple)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="40" cy="15" r="4" fill="#FFFFFF" stroke="var(--accent-purple)" stroke-width="2"/>
+              <circle cx="110" cy="25" r="4" fill="#FFFFFF" stroke="var(--accent-purple)" stroke-width="2"/>
+              <circle cx="180" cy="50" r="4" fill="#FFFFFF" stroke="var(--accent-purple)" stroke-width="2"/>
+              <circle cx="250" cy="75" r="5" fill="var(--accent-purple)" stroke="#FFFFFF" stroke-width="2"/>
+              <text x="40" y="10" text-anchor="middle" font-size="8" font-weight="600" fill="var(--text-primary)" font-family="Inter,-apple-system,sans-serif">97.0</text>
+              <text x="110" y="20" text-anchor="middle" font-size="8" font-weight="600" fill="var(--text-primary)" font-family="Inter,-apple-system,sans-serif">96.8</text>
+              <text x="180" y="45" text-anchor="middle" font-size="8" font-weight="600" fill="var(--text-primary)" font-family="Inter,-apple-system,sans-serif">96.5</text>
+              <text x="250" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="var(--accent-purple)" font-family="Inter,-apple-system,sans-serif">96.1</text>
+              <text x="40" y="99" text-anchor="middle" font-size="7" fill="var(--text-secondary)" font-family="Inter,-apple-system,sans-serif">Mar 31</text>
+              <text x="110" y="99" text-anchor="middle" font-size="7" fill="var(--text-secondary)" font-family="Inter,-apple-system,sans-serif">Apr 7</text>
+              <text x="180" y="99" text-anchor="middle" font-size="7" fill="var(--text-secondary)" font-family="Inter,-apple-system,sans-serif">Apr 14</text>
+              <text x="250" y="99" text-anchor="middle" font-size="7" fill="var(--text-secondary)" font-family="Inter,-apple-system,sans-serif">Apr 21</text>
+            </svg>
+          </div>
+          <div class="weight-goal">Goal: 93.0 kg — 3.1 kg to go</div>
+          <div class="weight-progress-bar"><div class="weight-progress-fill" data-width="77.5"></div></div>
+        </div>
+      </div>
+
+      <!-- MONTH VIEW -->
+      <div id="ov-month" class="overview-sub">
+        <div class="glass-card">
+          <div class="month-header-row">
+            <div class="week-nav-btn" onclick="this.style.opacity=0.5">‹</div>
+            <h3>April 2025</h3>
+            <div class="week-nav-btn" style="opacity:0.3;pointer-events:none;">›</div>
+          </div>
+          <div class="mini-cal">
+            <div class="mini-cal-header">M</div><div class="mini-cal-header">T</div><div class="mini-cal-header">W</div><div class="mini-cal-header">T</div><div class="mini-cal-header">F</div><div class="mini-cal-header">S</div><div class="mini-cal-header">S</div>
+            <div class="mini-cal-cell empty"></div><div class="mini-cal-cell green" onclick="goToDay(1)">1</div><div class="mini-cal-cell green" onclick="goToDay(2)">2</div><div class="mini-cal-cell green" onclick="goToDay(3)">3</div><div class="mini-cal-cell green" onclick="goToDay(4)">4</div><div class="mini-cal-cell amber" onclick="goToDay(5)">5</div><div class="mini-cal-cell red" onclick="goToDay(6)">6</div>
+            <div class="mini-cal-cell green" onclick="goToDay(7)">7</div><div class="mini-cal-cell green" onclick="goToDay(8)">8</div><div class="mini-cal-cell amber" onclick="goToDay(9)">9</div><div class="mini-cal-cell green" onclick="goToDay(10)">10</div><div class="mini-cal-cell green" onclick="goToDay(11)">11</div><div class="mini-cal-cell green" onclick="goToDay(12)">12</div><div class="mini-cal-cell green" onclick="goToDay(13)">13</div>
+            <div class="mini-cal-cell green" onclick="goToDay(14)">14</div><div class="mini-cal-cell green" onclick="goToDay(15)">15</div><div class="mini-cal-cell green" onclick="goToDay(16)">16</div><div class="mini-cal-cell green" onclick="goToDay(17)">17</div><div class="mini-cal-cell green" onclick="goToDay(18)">18</div><div class="mini-cal-cell green" onclick="goToDay(19)">19</div><div class="mini-cal-cell green" onclick="goToDay(20)">20</div>
+            <div class="mini-cal-cell green" onclick="goToDay(21)">21</div><div class="mini-cal-cell green" onclick="goToDay(22)">22</div><div class="mini-cal-cell green" onclick="goToDay(23)">23</div><div class="mini-cal-cell green" onclick="goToDay(24)">24</div><div class="mini-cal-cell amber" onclick="goToDay(25)">25</div><div class="mini-cal-cell empty"></div><div class="mini-cal-cell empty"></div>
+          </div>
+          <div class="month-stats">
+            <div class="month-stat-row"><span class="month-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span><span class="month-stat-text">3/3 weeks goal met · 14 workouts · 4,420 kcal</span><span class="month-stat-trend" style="color:var(--success);">↑</span></div>
+            <div class="month-stat-row"><span class="month-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span class="month-stat-text">2/3 weeks snack-free</span><span class="month-stat-trend" style="color:var(--accent-amber);">→</span></div>
+            <div class="month-stat-row"><span class="month-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M12 11v11"/><path d="M17 2l-5 9h6L8 22"/></svg></span><span class="month-stat-text">3/3 weeks under limit · avg 13.2u/wk</span><span class="month-stat-trend" style="color:var(--success);">↑</span></div>
+            <div class="month-stat-row"><span class="month-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c0-3 2.5-6 2.5-9 4 3.5 7.5 7.5 7.5 12a10 10 0 1 1-20 0c0-4.5 3.5-8.5 7.5-12 0 3 2.5 6 2.5 9z"/></svg></span><span class="month-stat-text">Calories: avg 2,180 kcal/day, 5 days over target</span><span class="month-stat-trend" style="color:var(--accent-amber);">→</span></div>
+            <div class="month-stat-row"><span class="month-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v17"/><path d="M5 12h14"/><circle cx="12" cy="12" r="9"/></svg></span><span class="month-stat-text">Weight: 97.0 → 96.1 kg (↓ 0.9 kg)</span><span class="month-stat-trend" style="color:var(--success);">↑</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- GOALS SCREEN -->
+    <div id="screen-goals" class="screen">
+      <h1 class="screen-header">Goals</h1>
+
+      <!-- Weight Goal -->
+      <div class="glass-card goal-card">
+        <div class="goal-header">
+          <div class="goal-icon" style="background:var(--tint-purple);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v17"/><path d="M5 12h14"/><circle cx="12" cy="12" r="9"/></svg>
+          </div>
+          <div class="goal-title-section">
+            <div class="goal-title">Weight</div>
+            <div class="goal-subtitle">93.0 kg by July 2026</div>
+          </div>
+          <div class="goal-edit" onclick="this.style.opacity=0.5">Edit</div>
+        </div>
+        <div class="goal-progress-section">
+          <div class="goal-numbers">
+            <span class="goal-current">96.1 kg</span>
+            <span class="goal-arrow">→</span>
+            <span class="goal-target">93.0 kg</span>
+          </div>
+          <div class="goal-bar-track">
+            <div class="goal-bar-fill" style="width:77.5%;background:linear-gradient(90deg, var(--accent-purple), #7C6FE3);"></div>
+          </div>
+          <div class="goal-meta">
+            <span>Started at 97.0 kg</span>
+            <span style="color:var(--accent-purple);font-weight:600;">3.1 kg to go</span>
+          </div>
+        </div>
+        <div class="goal-chart-mini">
+          <svg viewBox="0 0 280 60" preserveAspectRatio="none" style="width:100%;height:50px;">
+            <defs><linearGradient id="wGoalGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5B4CDB" stop-opacity="0.15"/><stop offset="100%" stop-color="#5B4CDB" stop-opacity="0.01"/></linearGradient></defs>
+            <line x1="0" y1="52" x2="280" y2="52" stroke="#5B4CDB" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.3"/>
+            <text x="270" y="50" font-size="7" fill="#5B4CDB" font-family="-apple-system" text-anchor="end">93kg</text>
+            <path d="M20,8 L80,14 L140,22 L200,32 L260,40 L260,60 L20,60 Z" fill="url(#wGoalGrad)"/>
+            <polyline points="20,8 80,14 140,22 200,32 260,40" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="260" cy="40" r="3.5" fill="#5B4CDB" stroke="#FFF" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- VO2 Max Goal -->
+      <div class="glass-card goal-card">
+        <div class="goal-header">
+          <div class="goal-icon" style="background:var(--tint-blue);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="goal-title-section">
+            <div class="goal-title">VO2 Max</div>
+            <div class="goal-subtitle">Target: 60 ml/kg/min</div>
+          </div>
+          <div class="goal-edit" onclick="this.style.opacity=0.5">Edit</div>
+        </div>
+        <div class="goal-progress-section">
+          <div class="goal-numbers">
+            <span class="goal-current">55.6</span>
+            <span class="goal-arrow">→</span>
+            <span class="goal-target">60.0</span>
+          </div>
+          <div class="goal-bar-track">
+            <div class="goal-bar-fill" style="width:63%;background:linear-gradient(90deg, var(--accent-blue), #7C6FE3);"></div>
+          </div>
+          <div class="goal-meta">
+            <span>Started at 52.0</span>
+            <span style="color:var(--accent-blue);font-weight:600;">4.4 to go</span>
+          </div>
+        </div>
+        <div class="goal-chart-mini">
+          <svg viewBox="0 0 280 60" preserveAspectRatio="none" style="width:100%;height:50px;">
+            <defs><linearGradient id="vGoalGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5B4CDB" stop-opacity="0.15"/><stop offset="100%" stop-color="#5B4CDB" stop-opacity="0.01"/></linearGradient></defs>
+            <line x1="0" y1="10" x2="280" y2="10" stroke="#5B4CDB" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.3"/>
+            <text x="270" y="8" font-size="7" fill="#5B4CDB" font-family="-apple-system" text-anchor="end">60</text>
+            <path d="M20,50 L80,44 L140,36 L200,30 L260,22 L260,60 L20,60 Z" fill="url(#vGoalGrad)"/>
+            <polyline points="20,50 80,44 140,36 200,30 260,22" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="260" cy="22" r="3.5" fill="#5B4CDB" stroke="#FFF" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Add Goal Button -->
+      <div class="add-goal-btn" onclick="this.style.opacity=0.6">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Add New Goal</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item" onclick="switchTab('log', this)"><span class="tab-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span class="tab-label">Log</span></div>
+    <div class="tab-item tab-home active" onclick="switchTab('overview', this)"><span class="tab-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1" fill="#5B4CDB" opacity="0.7"/><rect x="10" y="7" width="4" height="14" rx="1" fill="#5B4CDB" opacity="0.85"/><rect x="17" y="3" width="4" height="18" rx="1" fill="#5B4CDB"/></svg></span><span class="tab-label">Overview</span></div>
+    <div class="tab-item" onclick="switchTab('goals', this)"><span class="tab-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span class="tab-label">Goals</span></div>
+  </div>
+</div>
+
+<div class="footer-note">This is a design prototype. Give feedback to iterate before building.</div>
+
+<script>
+function toggleSettingsPanel() {
+  var panel = document.getElementById('settings-panel');
+  panel.classList.toggle('open');
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => {
+    t.classList.remove('active');
+    var svg = t.querySelector('.tab-icon svg');
+    if (svg) {
+      svg.setAttribute('stroke', '#8E8E93');
+      svg.querySelectorAll('rect[fill], path[fill]').forEach(function(el) {
+        if (el.getAttribute('fill') !== 'none') el.setAttribute('fill', '#8E8E93');
+      });
+    }
+  });
+  document.getElementById('screen-' + name).classList.add('active');
+  el.classList.add('active');
+  var activeSvg = el.querySelector('.tab-icon svg');
+  if (activeSvg) {
+    activeSvg.setAttribute('stroke', '#5B4CDB');
+    activeSvg.querySelectorAll('rect[fill], path[fill]').forEach(function(el) {
+      if (el.getAttribute('fill') !== 'none') el.setAttribute('fill', '#5B4CDB');
+    });
+  }
+  document.querySelector('.content-area').scrollTop = 0;
+  if (name === 'overview') {
+    positionSlider('overview-seg', 'overview-slider');
+    animateOverview();
+  }
+  if (name === 'log') positionSlider('log-seg', 'log-slider');
+}
+
+function switchOverviewSeg(el) {
+  var parent = el.parentElement;
+  parent.querySelectorAll('.seg-btn').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('#screen-overview .overview-sub').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(el.dataset.seg).classList.add('active');
+  positionSlider('overview-seg', 'overview-slider');
+  if (el.dataset.seg === 'ov-day' || el.dataset.seg === 'ov-week') { animateOverview(); animateWeekView(); }
+}
+
+function goToDay(dayLabel) {
+  // Switch to Day tab
+  var dayBtn = document.querySelector('#overview-seg .seg-btn[data-seg="ov-day"]');
+  if (dayBtn) {
+    dayBtn.parentElement.querySelectorAll('.seg-btn').forEach(function(b) { b.classList.remove('active'); });
+    dayBtn.classList.add('active');
+  }
+  document.querySelectorAll('#screen-overview .overview-sub').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('ov-day').classList.add('active');
+  positionSlider('overview-seg', 'overview-slider');
+  var dayView = document.getElementById('ov-day');
+  dayView.style.animation = 'none';
+  void dayView.offsetWidth;
+  dayView.style.animation = 'fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+}
+
+function switchWeekOption(id, el) {
+  document.querySelectorAll('.week-view-toggle .wv-btn').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('.week-option').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+
+function switchLogSeg(el) {
+  var parent = el.parentElement;
+  parent.querySelectorAll('.seg-btn').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('#screen-log .log-section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(el.dataset.seg).classList.add('active');
+  positionSlider('log-seg', 'log-slider');
+}
+
+// Date picker logic for Food & Drink logs
+var logDates = { food: 0, drink: 0, weight: 0 };
+
+function formatLogDate(offset) {
+  if (offset === 0) return 'Today';
+  if (offset === -1) return 'Yesterday';
+  var d = new Date();
+  d.setDate(d.getDate() + offset);
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()];
+}
+
+function formatFullDate(offset) {
+  var d = new Date();
+  d.setDate(d.getDate() + offset);
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function updateDateDisplay(type) {
+  var el = document.getElementById(type + '-date-text');
+  var bar = document.getElementById(type + '-date-bar');
+  if (el) el.textContent = formatLogDate(logDates[type]);
+  var sub = bar ? bar.querySelector('.date-sub') : null;
+  if (sub) sub.textContent = formatFullDate(logDates[type]);
+}
+
+function shiftDate(type, dir) {
+  logDates[type] = Math.min(0, logDates[type] + dir);
+  updateDateDisplay(type);
+}
+
+function openDatePicker(type) {
+  var options = [0, -1, -2, -3];
+  var current = options.indexOf(logDates[type]);
+  logDates[type] = options[(current + 1) % options.length];
+  updateDateDisplay(type);
+}
+
+function positionSlider(segId, sliderId) {
+  var seg = document.getElementById(segId);
+  var slider = document.getElementById(sliderId);
+  if (!seg || !slider) return;
+  var active = seg.querySelector('.seg-btn.active');
+  if (!active) return;
+  slider.style.left = active.offsetLeft + 'px';
+  slider.style.width = active.offsetWidth + 'px';
+}
+
+function selectChip(el) {
+  el.parentElement.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+function selectChipGroup(el) {
+  el.parentElement.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+function selectMealTab(el) {
+  el.parentElement.querySelectorAll('.meal-tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  var isSnack = el.classList.contains('snack-tab');
+  var mealSection = document.getElementById('meal-input-section');
+  var snackSection = document.getElementById('snack-input-section');
+  if (mealSection && snackSection) {
+    mealSection.style.display = isSnack ? 'none' : 'block';
+    snackSection.style.display = isSnack ? 'block' : 'none';
+  }
+}
+
+function selectMealType(el) {
+  el.parentElement.querySelectorAll('.meal-type-option').forEach(function(o) { o.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function selectMealMode(el, mode) {
+  el.parentElement.querySelectorAll('.meal-type-option').forEach(function(o) { o.classList.remove('active'); });
+  el.classList.add('active');
+  var manualSection = document.getElementById('meal-mode-manual');
+  var photoSection = document.getElementById('meal-mode-photo');
+  if (manualSection && photoSection) {
+    manualSection.style.display = mode === 'manual' ? 'block' : 'none';
+    photoSection.style.display = mode === 'photo' ? 'block' : 'none';
+  }
+}
+
+var selectedDrinkUnit = 2.3;
+var selectedDrinkKcal = 182;
+function selectDrink(el, units, kcal) {
+  document.querySelectorAll('.drink-type-btn').forEach(function(b) { b.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedDrinkUnit = units || 0;
+  selectedDrinkKcal = kcal || 0;
+  document.getElementById('drink-qty').textContent = '1';
+  updateDrinkTotal();
+}
+function changeDrinkQty(delta) {
+  var el = document.getElementById('drink-qty');
+  var val = parseInt(el.textContent) + delta;
+  if (val < 1) val = 1;
+  if (val > 20) val = 20;
+  el.textContent = val;
+  updateDrinkTotal();
+}
+function updateDrinkTotal() {
+  var qty = parseInt(document.getElementById('drink-qty').textContent);
+  var totalUnits = (qty * selectedDrinkUnit).toFixed(1);
+  var totalKcal = Math.round(qty * selectedDrinkKcal);
+  document.getElementById('session-total').textContent = 'This session: ' + totalUnits + ' units · ' + totalKcal + ' kcal';
+}
+
+function adjustWeight(delta) {
+  var el = document.getElementById('weight-val');
+  var val = parseFloat(el.textContent) + delta;
+  if (val < 40) val = 40;
+  if (val > 200) val = 200;
+  el.textContent = val.toFixed(1);
+}
+
+function miniStep(btn, delta) {
+  var valEl = btn.parentElement.querySelector('.mini-step-val');
+  var v = parseInt(valEl.textContent) + delta;
+  if (v < 1) v = 1;
+  valEl.textContent = v;
+}
+function themeSelect(el) {
+  el.parentElement.querySelectorAll('.seg-small-btn').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function toggleSnackPass() {
+  var card = document.getElementById('snack-pass');
+  card.classList.toggle('show');
+  var toggle = document.querySelector('.snack-pass-toggle');
+  toggle.textContent = card.classList.contains('show') ? '\u25BE Hide preview' : '\u25B8 Preview Weekend Snack Pass';
+}
+
+function animateOverview() {
+  document.querySelectorAll('#ov-day .ring-progress, #ov-week .ring-progress').forEach(function(ring) {
+    var target = parseFloat(ring.dataset.target);
+    var circumference = 188.5;
+    ring.style.transition = 'none';
+    ring.style.strokeDashoffset = circumference;
+    requestAnimationFrame(function() {
+      ring.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1)';
+      ring.style.strokeDashoffset = target;
+    });
+  });
+  document.querySelectorAll('#ov-day .alcohol-bar-fill, #ov-week .alcohol-bar-fill').forEach(function(bar) {
+    var w = bar.dataset.width;
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    requestAnimationFrame(function() {
+      bar.style.transition = 'width 1.2s cubic-bezier(0.22,1,0.36,1)';
+      bar.style.width = w + '%';
+    });
+  });
+}
+
+function animateWeekView() {
+  document.querySelectorAll('#ov-week .weight-progress-fill').forEach(function(bar) {
+    var w = bar.dataset.width;
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    requestAnimationFrame(function() {
+      bar.style.transition = 'width 1.2s cubic-bezier(0.22,1,0.36,1)';
+      bar.style.width = w + '%';
+    });
+  });
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    positionSlider('overview-seg', 'overview-slider');
+    positionSlider('log-seg', 'log-slider');
+    animateOverview();
+  }, 50);
+});
+window.addEventListener('resize', function() {
+  positionSlider('overview-seg', 'overview-slider');
+  positionSlider('log-seg', 'log-slider');
+});
+</script>
+</body>
+</html>
