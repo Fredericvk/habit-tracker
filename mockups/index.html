@@ -803,8 +803,13 @@ body {
 
 .month-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
 .month-header-row h3 { font-family:var(--font-display); font-size:18px; font-weight:700; }
-.mini-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:16px; }
+.mini-cal { display:grid; grid-template-columns:24px repeat(7,1fr); gap:4px; margin-bottom:16px; }
 .mini-cal-header { font-size:10px; color:var(--text-tertiary); text-align:center; font-weight:600; padding:4px 0; }
+.mini-cal-week { font-size:9px; color:var(--text-tertiary); font-weight:700; display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:4px; transition:background 0.2s; }
+.mini-cal-week:hover { background:var(--tint-purple); color:var(--accent-purple); }
+.mini-cal-week.active { background:var(--accent-purple); color:#fff; }
+.week-detail-panel { display:none; position:absolute; top:0; left:0; right:0; bottom:0; z-index:10; background:#FFFFFF; border-radius:20px; padding:16px; box-shadow:0 2px 16px rgba(0,0,0,0.08); }
+.week-detail-panel.open { display:flex; flex-direction:column; justify-content:center; }
 .mini-cal-cell {
   aspect-ratio:1;
   border-radius:8px;
@@ -1692,18 +1697,38 @@ body {
 
       <!-- MONTH VIEW -->
       <div id="ov-month" class="overview-sub">
-        <div class="glass-card">
+        <div class="glass-card" style="position:relative;">
+          <!-- Week detail overlay -->
+          <div id="month-week-detail" class="week-detail-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span id="week-detail-title" style="font-size:13px;font-weight:700;color:var(--text-primary);">Week 17 · Apr 21–27</span>
+              <button onclick="toggleWeekDetail(null)" style="background:none;border:none;font-size:16px;color:var(--text-tertiary);cursor:pointer;padding:2px 6px;">✕</button>
+            </div>
+            <div class="week-grid" style="font-size:9px;">
+              <div class="wg-label-cell"></div>
+              <div class="wg-day-header">Mon</div><div class="wg-day-header">Tue</div><div class="wg-day-header">Wed</div><div class="wg-day-header">Thu</div><div class="wg-day-header">Fri</div><div class="wg-day-header">Sat</div><div class="wg-day-header">Sun</div>
+              <div class="wg-label-cell"><span class="wg-tracker-name">Cal</span></div>
+              <div class="wg-cell cal-good"><span class="wg-val">2,180</span></div><div class="wg-cell cal-good"><span class="wg-val">2,050</span></div><div class="wg-cell cal-bad"><span class="wg-val">2,520</span></div><div class="wg-cell cal-good"><span class="wg-val">2,100</span></div><div class="wg-cell cal-good"><span class="wg-val">1,900</span></div><div class="wg-cell cal-good"><span class="wg-val">2,200</span></div><div class="wg-cell cal-good"><span class="wg-val">2,150</span></div>
+              <div class="wg-label-cell"><span class="wg-tracker-name">Exercise</span></div>
+              <div class="wg-cell ex-yes"><span class="wg-val">🏃 45m</span></div><div class="wg-cell ex-no"><span class="wg-val">Rest</span></div><div class="wg-cell ex-yes"><span class="wg-val">🤸 60m</span></div><div class="wg-cell ex-yes"><span class="wg-val">🏋️ 50m</span></div><div class="wg-cell ex-yes"><span class="wg-val">🏃 40m</span></div><div class="wg-cell ex-no"><span class="wg-val">Rest</span></div><div class="wg-cell ex-no"><span class="wg-val">Rest</span></div>
+              <div class="wg-label-cell"><span class="wg-tracker-name">Snacking</span></div>
+              <div class="wg-cell eat-clean"><span class="wg-val">✓</span></div><div class="wg-cell eat-clean"><span class="wg-val">✓</span></div><div class="wg-cell eat-clean"><span class="wg-val">✓</span></div><div class="wg-cell eat-clean"><span class="wg-val">✓</span></div><div class="wg-cell eat-clean"><span class="wg-val">✓</span></div><div class="wg-cell eat-clean"><span class="wg-val">—</span></div><div class="wg-cell eat-clean"><span class="wg-val">—</span></div>
+              <div class="wg-label-cell"><span class="wg-tracker-name">Alcohol</span></div>
+              <div class="wg-cell alc-none"><span class="wg-val">0u</span></div><div class="wg-cell alc-low"><span class="wg-val">4.6u</span></div><div class="wg-cell alc-none"><span class="wg-val">0u</span></div><div class="wg-cell alc-none"><span class="wg-val">0u</span></div><div class="wg-cell alc-low"><span class="wg-val">2.1u</span></div><div class="wg-cell alc-med"><span class="wg-val">4.6u</span></div><div class="wg-cell alc-none"><span class="wg-val">0u</span></div>
+            </div>
+          </div>
+
           <div class="month-header-row">
             <div class="week-nav-btn" onclick="this.style.opacity=0.5">‹</div>
             <h3>April 2025</h3>
             <div class="week-nav-btn" style="opacity:0.3;pointer-events:none;">›</div>
           </div>
           <div class="mini-cal">
-            <div class="mini-cal-header">M</div><div class="mini-cal-header">T</div><div class="mini-cal-header">W</div><div class="mini-cal-header">T</div><div class="mini-cal-header">F</div><div class="mini-cal-header">S</div><div class="mini-cal-header">S</div>
-            <div class="mini-cal-cell empty"></div><div class="mini-cal-cell green" onclick="goToDay(1)">1</div><div class="mini-cal-cell green" onclick="goToDay(2)">2</div><div class="mini-cal-cell green" onclick="goToDay(3)">3</div><div class="mini-cal-cell green" onclick="goToDay(4)">4</div><div class="mini-cal-cell amber" onclick="goToDay(5)">5</div><div class="mini-cal-cell red" onclick="goToDay(6)">6</div>
-            <div class="mini-cal-cell green" onclick="goToDay(7)">7</div><div class="mini-cal-cell green" onclick="goToDay(8)">8</div><div class="mini-cal-cell amber" onclick="goToDay(9)">9</div><div class="mini-cal-cell green" onclick="goToDay(10)">10</div><div class="mini-cal-cell green" onclick="goToDay(11)">11</div><div class="mini-cal-cell green" onclick="goToDay(12)">12</div><div class="mini-cal-cell green" onclick="goToDay(13)">13</div>
-            <div class="mini-cal-cell green" onclick="goToDay(14)">14</div><div class="mini-cal-cell green" onclick="goToDay(15)">15</div><div class="mini-cal-cell green" onclick="goToDay(16)">16</div><div class="mini-cal-cell green" onclick="goToDay(17)">17</div><div class="mini-cal-cell green" onclick="goToDay(18)">18</div><div class="mini-cal-cell green" onclick="goToDay(19)">19</div><div class="mini-cal-cell green" onclick="goToDay(20)">20</div>
-            <div class="mini-cal-cell green" onclick="goToDay(21)">21</div><div class="mini-cal-cell green" onclick="goToDay(22)">22</div><div class="mini-cal-cell green" onclick="goToDay(23)">23</div><div class="mini-cal-cell green" onclick="goToDay(24)">24</div><div class="mini-cal-cell amber" onclick="goToDay(25)">25</div><div class="mini-cal-cell empty"></div><div class="mini-cal-cell empty"></div>
+            <div class="mini-cal-header"></div><div class="mini-cal-header">M</div><div class="mini-cal-header">T</div><div class="mini-cal-header">W</div><div class="mini-cal-header">T</div><div class="mini-cal-header">F</div><div class="mini-cal-header">S</div><div class="mini-cal-header">S</div>
+            <div class="mini-cal-week" style="cursor:pointer;" onclick="toggleWeekDetail(14)">14</div><div class="mini-cal-cell empty"></div><div class="mini-cal-cell green" onclick="goToDay(1)">1</div><div class="mini-cal-cell green" onclick="goToDay(2)">2</div><div class="mini-cal-cell green" onclick="goToDay(3)">3</div><div class="mini-cal-cell green" onclick="goToDay(4)">4</div><div class="mini-cal-cell amber" onclick="goToDay(5)">5</div><div class="mini-cal-cell red" onclick="goToDay(6)">6</div>
+            <div class="mini-cal-week" style="cursor:pointer;" onclick="toggleWeekDetail(15)">15</div><div class="mini-cal-cell green" onclick="goToDay(7)">7</div><div class="mini-cal-cell green" onclick="goToDay(8)">8</div><div class="mini-cal-cell amber" onclick="goToDay(9)">9</div><div class="mini-cal-cell green" onclick="goToDay(10)">10</div><div class="mini-cal-cell green" onclick="goToDay(11)">11</div><div class="mini-cal-cell green" onclick="goToDay(12)">12</div><div class="mini-cal-cell green" onclick="goToDay(13)">13</div>
+            <div class="mini-cal-week" style="cursor:pointer;" onclick="toggleWeekDetail(16)">16</div><div class="mini-cal-cell green" onclick="goToDay(14)">14</div><div class="mini-cal-cell green" onclick="goToDay(15)">15</div><div class="mini-cal-cell green" onclick="goToDay(16)">16</div><div class="mini-cal-cell green" onclick="goToDay(17)">17</div><div class="mini-cal-cell green" onclick="goToDay(18)">18</div><div class="mini-cal-cell green" onclick="goToDay(19)">19</div><div class="mini-cal-cell green" onclick="goToDay(20)">20</div>
+            <div class="mini-cal-week" style="cursor:pointer;" onclick="toggleWeekDetail(17)">17</div><div class="mini-cal-cell green" onclick="goToDay(21)">21</div><div class="mini-cal-cell green" onclick="goToDay(22)">22</div><div class="mini-cal-cell green" onclick="goToDay(23)">23</div><div class="mini-cal-cell green" onclick="goToDay(24)">24</div><div class="mini-cal-cell amber" onclick="goToDay(25)">25</div><div class="mini-cal-cell empty"></div><div class="mini-cal-cell empty"></div>
           </div>
           <div class="month-stats">
             <div class="month-stat-row"><span class="month-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span><span class="month-stat-text">3/3 weeks goal met · 14 workouts · 4,420 kcal</span><span class="month-stat-trend" style="color:var(--success);">↑</span></div>
@@ -1874,6 +1899,27 @@ function goToDay(dayLabel) {
   dayView.style.animation = 'none';
   void dayView.offsetWidth;
   dayView.style.animation = 'fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+}
+
+var activeWeekNum = null;
+function toggleWeekDetail(weekNum) {
+  var panel = document.getElementById('month-week-detail');
+  var title = document.getElementById('week-detail-title');
+  var weekLabels = {14:'Mar 30 – Apr 5',15:'Apr 7 – 13',16:'Apr 14 – 20',17:'Apr 21 – 27'};
+  // Deactivate all week number cells
+  document.querySelectorAll('.mini-cal-week').forEach(function(w) { w.classList.remove('active'); });
+  if (weekNum === null || weekNum === activeWeekNum) {
+    panel.classList.remove('open');
+    activeWeekNum = null;
+    return;
+  }
+  activeWeekNum = weekNum;
+  title.textContent = 'Week ' + weekNum + ' · ' + (weekLabels[weekNum] || '');
+  // Highlight active week number
+  document.querySelectorAll('.mini-cal-week').forEach(function(w) {
+    if (w.textContent.trim() == weekNum) w.classList.add('active');
+  });
+  panel.classList.add('open');
 }
 
 function switchWeekOption(id, el) {
