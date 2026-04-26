@@ -5,6 +5,8 @@ struct GoalsScreen: View {
     let store: HabitStore
     @State private var editingGoal: String? = nil
     @State private var allGoals: [Goal] = []
+    // Pre-computed success weeks — populated in refreshData(), not inside body.
+    @State private var goalSuccessWeeks: [String: Int] = [:]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,8 +31,18 @@ struct GoalsScreen: View {
             }
         }
         .background(Color.theme.background)
-        .onAppear { allGoals = store.cachedGoals() }
-        .onChange(of: store.dataVersion) { _, _ in allGoals = store.cachedGoals() }
+        .onAppear { refreshData() }
+        .onChange(of: store.dataVersion) { _, _ in refreshData() }
+    }
+
+    private func refreshData() {
+        allGoals = store.cachedGoals()
+        // Run DB-touching computation here, not inside body/ForEach.
+        var weeks: [String: Int] = [:]
+        for goal in allGoals {
+            weeks[goal.type] = computeSuccessfulWeeks(for: goal)
+        }
+        goalSuccessWeeks = weeks
     }
 
     // MARK: - Goal Card Router
@@ -40,7 +52,8 @@ struct GoalsScreen: View {
         let totalWeeks = DateHelper.weekCount(from: goal.startDate, to: goal.endDate)
         let elapsedWeeks = DateHelper.weekCount(from: goal.startDate, to: min(.now, goal.endDate))
         let remainingWeeks = max(0, totalWeeks - elapsedWeeks)
-        let successfulWeeks = computeSuccessfulWeeks(for: goal)
+        // Read pre-computed value instead of calling computeSuccessfulWeeks here.
+        let successfulWeeks = goalSuccessWeeks[goal.type] ?? 0
 
         goalCard(
             goal: goal,

@@ -13,7 +13,15 @@ struct MonthView: View {
     @State private var monthDrinks: [DrinkEntry] = []
     @State private var calorieGoalValue: Int = 2300
 
-    private var cal: Calendar { DateHelper.calendar }
+    // Day-keyed lookup dictionaries for O(1) per-cell access
+    @State private var mealsByDay: [Date: [MealEntry]] = [:]
+    @State private var workoutsByDay: [Date: [WorkoutEntry]] = [:]
+    @State private var drinksByDay: [Date: [DrinkEntry]] = [:]
+
+    // Cached calendar grid — rebuilt only when the displayed month changes
+    @State private var calendarWeeks: [[(Int, Date?)]] = []
+
+    private let cal: Calendar = DateHelper.calendar
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -51,32 +59,39 @@ struct MonthView: View {
     private func refreshData() {
         let start = DateHelper.startOfMonth(displayedMonth)
         let end = DateHelper.endOfMonth(displayedMonth)
-        monthMeals = store.mealsInRange(from: start, to: end)
-        monthWorkouts = store.workoutsInRange(from: start, to: end)
-        monthDrinks = store.drinksInRange(from: start, to: end)
+        let meals = store.mealsInRange(from: start, to: end)
+        let workouts = store.workoutsInRange(from: start, to: end)
+        let drinks = store.drinksInRange(from: start, to: end)
+
+        monthMeals = meals
+        monthWorkouts = workouts
+        monthDrinks = drinks
+
+        // Build day-keyed dicts so per-cell lookups are O(1) instead of O(n).
+        mealsByDay = Dictionary(grouping: meals) { DateHelper.startOfDay($0.date) }
+        workoutsByDay = Dictionary(grouping: workouts) { DateHelper.startOfDay($0.date) }
+        drinksByDay = Dictionary(grouping: drinks) { DateHelper.startOfDay($0.date) }
+
         calorieGoalValue = Int(store.cachedGoal(for: .calories)?.targetValue ?? 2300)
+
+        // Cache the calendar grid — no need to recompute on every body pass.
+        calendarWeeks = computeCalendarWeeks()
     }
 
-    // Helper: filter pre-fetched data for a specific day
+    // Helper: O(1) lookups using pre-built day dictionaries
     private func mealsForDay(_ date: Date) -> [MealEntry] {
-        let dayStart = DateHelper.startOfDay(date)
-        let dayEnd = DateHelper.endOfDay(date)
-        return monthMeals.filter { $0.date >= dayStart && $0.date < dayEnd }
+        mealsByDay[DateHelper.startOfDay(date)] ?? []
     }
     private func workoutsForDay(_ date: Date) -> [WorkoutEntry] {
-        let dayStart = DateHelper.startOfDay(date)
-        let dayEnd = DateHelper.endOfDay(date)
-        return monthWorkouts.filter { $0.date >= dayStart && $0.date < dayEnd }
+        workoutsByDay[DateHelper.startOfDay(date)] ?? []
     }
     private func drinksForDay(_ date: Date) -> [DrinkEntry] {
-        let dayStart = DateHelper.startOfDay(date)
-        let dayEnd = DateHelper.endOfDay(date)
-        return monthDrinks.filter { $0.date >= dayStart && $0.date < dayEnd }
+        drinksByDay[DateHelper.startOfDay(date)] ?? []
     }
 
     // MARK: - Calendar Data
 
-    private var calendarWeeks: [[(Int, Date?)]] {
+    private func computeCalendarWeeks() -> [[(Int, Date?)]] {
         let start = DateHelper.startOfMonth(displayedMonth)
         let range = cal.range(of: .day, in: .month, for: start)!
         let firstWeekday = cal.component(.weekday, from: start)
@@ -106,6 +121,8 @@ struct MonthView: View {
 
     private var calendarCard: some View {
         let weekdays = ["M", "T", "W", "T", "F", "S", "S"]
+        // Hoist today so it is computed once for the whole card, not per cell.
+        let today = DateHelper.startOfDay(.now)
 
         return ZStack {
             VStack(spacing: 6) {
@@ -148,7 +165,7 @@ struct MonthView: View {
                                 Button {
                                     onSelectDate?(date)
                                 } label: {
-                                    dayCell(day: day, date: date, isToday: cal.isDateInToday(date))
+                                    dayCell(day: day, date: date, isToday: cal.isDateInToday(date), today: today)
                                 }
                             } else {
                                 Color.clear
@@ -170,7 +187,7 @@ struct MonthView: View {
         }
     }
 
-    private func dayCell(day: Int, date: Date, isToday: Bool) -> some View {
+    private func dayCell(day: Int, date: Date, isToday: Bool, today: Date) -> some View {
         VStack(spacing: 2) {
             ZStack {
                 if isToday {
@@ -183,9 +200,9 @@ struct MonthView: View {
                     .foregroundStyle(isToday ? .white : Color.theme.textPrimary)
             }
 
-            if DateHelper.startOfDay(date) <= DateHelper.startOfDay(.now) {
+            if DateHelper.startOfDay(date) <= today {
                 Circle()
-                    .fill(dayDotColor(for: date))
+                    .fill(dayDotColor(for: date, today: today))
                     .frame(width: 6, height: 6)
             } else {
                 Color.clear.frame(width: 6, height: 6)
@@ -195,14 +212,14 @@ struct MonthView: View {
         .frame(height: 40)
     }
 
-    private func dayDotColor(for date: Date) -> Color {
+    private func dayDotColor(for date: Date, today: Date) -> Color {
         var failures = 0
-        let dayMeals = mealsForDay(date)
+        let dayMeals = mealsForDay(date)       // O(1) dict lookup
         let cals = dayMeals.reduce(0) { $0 + $1.estimatedKcal }
         if cals > calorieGoalValue || cals == 0 { failures += 1 }
-        if workoutsForDay(date).isEmpty { failures += 1 }
+        if workoutsForDay(date).isEmpty { failures += 1 }  // O(1) dict lookup
         if dayMeals.contains(where: \.isSnack) { failures += 1 }
-        if drinksForDay(date).reduce(0, { $0 + $1.units }) > 0 { failures += 1 }
+        if drinksForDay(date).reduce(0, { $0 + $1.units }) > 0 { failures += 1 }  // O(1) dict lookup
 
         if failures == 0 { return Color.theme.success }
         if failures <= 2 { return Color.theme.warning }

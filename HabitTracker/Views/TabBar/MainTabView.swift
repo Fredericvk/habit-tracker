@@ -12,18 +12,25 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Group {
+            // All tabs are kept alive in the hierarchy so onAppear fires only
+            // once per session, preventing repeated SwiftData fetches on tab switch.
+            ZStack {
                 if let store {
-                    switch selectedTab {
-                    case .log:
-                        LogScreen(store: store)
-                    case .overview:
-                        OverviewScreen(store: store)
-                    case .goals:
-                        GoalsScreen(store: store)
-                    case .settings:
-                        SettingsScreen()
-                    }
+                    LogScreen(store: store)
+                        .opacity(selectedTab == .log ? 1 : 0)
+                        .allowsHitTesting(selectedTab == .log)
+
+                    OverviewScreen(store: store)
+                        .opacity(selectedTab == .overview ? 1 : 0)
+                        .allowsHitTesting(selectedTab == .overview)
+
+                    GoalsScreen(store: store)
+                        .opacity(selectedTab == .goals ? 1 : 0)
+                        .allowsHitTesting(selectedTab == .goals)
+
+                    SettingsScreen()
+                        .opacity(selectedTab == .settings ? 1 : 0)
+                        .allowsHitTesting(selectedTab == .settings)
                 } else {
                     Color.theme.background
                 }
@@ -35,6 +42,8 @@ struct MainTabView: View {
         .background(Color.theme.background)
         .task {
             if store == nil {
+                // Seed default goals after the first frame to avoid blocking launch.
+                DataSeeder.seedDefaultGoals(context: modelContext)
                 store = HabitStore(modelContext: modelContext)
             }
         }

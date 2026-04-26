@@ -14,6 +14,7 @@ struct ThemeColors {
     let success = Color(hex: "10B981")        // Green
     let warning = Color(hex: "F59E0B")        // Amber
     let danger = Color(hex: "EF4444")         // Red
+    let stravaOrange = Color(hex: "FC4C02")   // Strava brand colour
 
     let textPrimary = Color(hex: "1F2937")
     let textSecondary = Color(hex: "6B7280")

@@ -129,7 +129,6 @@ final class HabitStore {
 
     private func save() {
         try? modelContext.save()
-        _goalCache = nil
         dataVersion += 1
     }
 }
