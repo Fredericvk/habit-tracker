@@ -1,12 +1,30 @@
 import SwiftUI
+import SwiftData
 
 struct LogScreen: View {
+    let store: HabitStore
     @State private var selectedSegment = 0
     private let segments = ["Food", "Drink", "Weight"]
 
+    // Food state
+    @State private var selectedMealType: MealType = .lunch
+    @State private var foodDescription = ""
+    @State private var foodKcal = ""
+    @State private var isPhotoMode = false
+
+    // Drink state
+    @State private var selectedDrinkType: DrinkType = .beer
+    @State private var drinkQuantity = 1
+
+    // Weight state
+    @State private var weightValue: Double = 96.5
+
+    // Feedback
+    @State private var showSavedFeedback = false
+    @State private var savedMessage = ""
+
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
                 Text("Log")
                     .font(.screenTitle)
@@ -16,12 +34,10 @@ struct LogScreen: View {
             .padding(.horizontal, Layout.screenPadding)
             .padding(.top, 16)
 
-            // Segmented Control
             SegmentedPill(segments: segments, selected: $selectedSegment)
                 .padding(.horizontal, Layout.screenPadding)
                 .padding(.top, 12)
 
-            // Content
             ScrollView(showsIndicators: false) {
                 Group {
                     switch selectedSegment {
@@ -39,6 +55,41 @@ struct LogScreen: View {
             Spacer(minLength: 0)
         }
         .background(Color.theme.background)
+        .overlay {
+            if showSavedFeedback {
+                savedToast
+            }
+        }
+    }
+
+    // MARK: - Saved Toast
+
+    private var savedToast: some View {
+        VStack {
+            Spacer()
+            Text(savedMessage)
+                .font(.pillLabel)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Color.theme.success)
+                .clipShape(Capsule())
+                .shadow(radius: 8)
+                .padding(.bottom, 120)
+        }
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation { showSavedFeedback = false }
+            }
+        }
+    }
+
+    private func showSaved(_ message: String) {
+        savedMessage = message
+        withAnimation(.spring(response: 0.3)) {
+            showSavedFeedback = true
+        }
     }
 
     // MARK: - Food Log
@@ -47,8 +98,12 @@ struct LogScreen: View {
         VStack(spacing: Layout.cardSpacing) {
             // Input mode toggle
             HStack(spacing: 12) {
-                modeButton(icon: "pencil", label: "Manual", isSelected: true)
-                modeButton(icon: "camera.fill", label: "Photo", isSelected: false)
+                modeButton(icon: "pencil", label: "Manual", isSelected: !isPhotoMode) {
+                    isPhotoMode = false
+                }
+                modeButton(icon: "camera.fill", label: "Photo", isSelected: isPhotoMode) {
+                    isPhotoMode = true
+                }
             }
 
             // Meal type selector
@@ -59,7 +114,9 @@ struct LogScreen: View {
 
                 HStack(spacing: 8) {
                     ForEach(MealType.allCases, id: \.self) { meal in
-                        mealTypeButton(meal: meal, isSelected: meal == .lunch)
+                        mealTypeButton(meal: meal, isSelected: meal == selectedMealType) {
+                            selectedMealType = meal
+                        }
                     }
                 }
             }
@@ -71,7 +128,7 @@ struct LogScreen: View {
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textMuted)
 
-                TextField("e.g., Grilled chicken with rice", text: .constant(""))
+                TextField("e.g., Grilled chicken with rice", text: $foodDescription)
                     .textFieldStyle(.plain)
                     .padding(12)
                     .background(Color.theme.background)
@@ -82,7 +139,7 @@ struct LogScreen: View {
                         .font(.cardCaption)
                         .foregroundStyle(Color.theme.textMuted)
                     Spacer()
-                    TextField("kcal", text: .constant(""))
+                    TextField("kcal", text: $foodKcal)
                         .textFieldStyle(.plain)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
@@ -94,59 +151,90 @@ struct LogScreen: View {
             }
             .cardStyle()
 
+            // Today's total
+            let todayCal = store.totalCalories(for: .now)
+            let calorieGoal = store.goal(for: .calories)?.targetValue ?? 2300
+            HStack {
+                Text("Today so far:")
+                    .font(.cardCaption)
+                    .foregroundStyle(Color.theme.textMuted)
+                Spacer()
+                Text("\(todayCal) / \(Int(calorieGoal)) kcal")
+                    .font(.statSmall)
+                    .foregroundStyle(Double(todayCal) > calorieGoal ? Color.theme.danger : Color.theme.success)
+            }
+            .cardStyle()
+
             // Save button
-            Button { } label: {
+            Button {
+                saveMeal()
+            } label: {
                 Text("Save Meal")
                     .font(.pillLabel)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.theme.primary)
+                    .background(foodDescription.isEmpty ? Color.theme.textMuted : Color.theme.primary)
                     .clipShape(Capsule())
             }
+            .disabled(foodDescription.isEmpty)
         }
     }
 
-    private func modeButton(icon: String, label: String, isSelected: Bool) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-            Text(label)
-                .font(.pillLabel)
-        }
-        .foregroundStyle(isSelected ? .white : Color.theme.textSecondary)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(isSelected ? Color.theme.primary : Color.theme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: isSelected ? .clear : .black.opacity(0.04), radius: 4)
+    private func saveMeal() {
+        let kcal = Int(foodKcal) ?? 0
+        store.addMeal(date: .now, mealType: selectedMealType, description: foodDescription, kcal: kcal)
+        foodDescription = ""
+        foodKcal = ""
+        showSaved("✅ \(selectedMealType.rawValue) saved!")
     }
 
-    private func mealTypeButton(meal: MealType, isSelected: Bool) -> some View {
-        VStack(spacing: 4) {
-            Image(systemName: meal.icon)
-                .font(.system(size: 18))
-            Text(meal.rawValue)
-                .font(.system(size: 10, weight: .medium))
+    private func modeButton(icon: String, label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                Text(label)
+                    .font(.pillLabel)
+            }
+            .foregroundStyle(isSelected ? .white : Color.theme.textSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(isSelected ? Color.theme.primary : Color.theme.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .shadow(color: isSelected ? .clear : .black.opacity(0.04), radius: 4)
         }
-        .foregroundStyle(isSelected ? Color.theme.primary : Color.theme.textMuted)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .background(isSelected ? Color.theme.tintPurple : Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func mealTypeButton(meal: MealType, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: meal.icon)
+                    .font(.system(size: 18))
+                Text(meal.rawValue)
+                    .font(.system(size: 10, weight: .medium))
+            }
+            .foregroundStyle(isSelected ? Color.theme.primary : Color.theme.textMuted)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(isSelected ? Color.theme.tintPurple : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
     }
 
     // MARK: - Drink Log
 
     private var drinkLog: some View {
         VStack(spacing: Layout.cardSpacing) {
-            // Drink type grid
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible()),
                 GridItem(.flexible())
             ], spacing: 12) {
                 ForEach(DrinkType.allCases, id: \.self) { drink in
-                    drinkButton(type: drink, isSelected: drink == .beer)
+                    drinkButton(type: drink, isSelected: drink == selectedDrinkType) {
+                        selectedDrinkType = drink
+                        drinkQuantity = 1
+                    }
                 }
             }
 
@@ -157,44 +245,49 @@ struct LogScreen: View {
                     .foregroundStyle(Color.theme.textMuted)
 
                 HStack(spacing: 24) {
-                    Button { } label: {
+                    Button { if drinkQuantity > 1 { drinkQuantity -= 1 } } label: {
                         Image(systemName: "minus.circle.fill")
                             .font(.system(size: 32))
-                            .foregroundStyle(Color.theme.textMuted)
+                            .foregroundStyle(drinkQuantity > 1 ? Color.theme.primary : Color.theme.textMuted)
                     }
 
-                    Text("1")
+                    Text("\(drinkQuantity)")
                         .font(.statLarge)
                         .foregroundStyle(Color.theme.textPrimary)
                         .frame(width: 60)
 
-                    Button { } label: {
+                    Button { drinkQuantity += 1 } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 32))
                             .foregroundStyle(Color.theme.primary)
                     }
                 }
 
-                Text("2.3 units · 182 kcal")
+                let units = selectedDrinkType.defaultUnits * Double(drinkQuantity)
+                let kcal = selectedDrinkType.defaultKcal * drinkQuantity
+                Text(String(format: "%.1f units · %d kcal", units, kcal))
                     .font(.cardBody)
                     .foregroundStyle(Color.theme.textSecondary)
             }
             .cardStyle()
 
             // Weekly total
+            let weekUnits = store.weeklyUnits(.now)
+            let unitGoal = store.goal(for: .alcohol)?.targetValue ?? 17
             HStack {
                 Text("This week:")
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textMuted)
                 Spacer()
-                Text("9.2 / 17 units")
+                Text(String(format: "%.1f / %.0f units", weekUnits, unitGoal))
                     .font(.statSmall)
-                    .foregroundStyle(Color.theme.warning)
+                    .foregroundStyle(weekUnits > unitGoal ? Color.theme.danger : Color.theme.warning)
             }
             .cardStyle()
 
-            // Add button
-            Button { } label: {
+            Button {
+                saveDrink()
+            } label: {
                 Text("Add Drink")
                     .font(.pillLabel)
                     .foregroundStyle(.white)
@@ -206,23 +299,31 @@ struct LogScreen: View {
         }
     }
 
-    private func drinkButton(type: DrinkType, isSelected: Bool) -> some View {
-        VStack(spacing: 6) {
-            Text(type.icon)
-                .font(.system(size: 28))
-            Text(type.rawValue)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(isSelected ? Color.theme.primary : Color.theme.textSecondary)
+    private func saveDrink() {
+        store.addDrink(date: .now, type: selectedDrinkType, quantity: drinkQuantity)
+        drinkQuantity = 1
+        showSaved("✅ \(selectedDrinkType.rawValue) added!")
+    }
+
+    private func drinkButton(type: DrinkType, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Text(type.icon)
+                    .font(.system(size: 28))
+                Text(type.rawValue)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isSelected ? Color.theme.primary : Color.theme.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(isSelected ? Color.theme.tintPurple : Color.theme.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(isSelected ? Color.theme.primary : Color.clear, lineWidth: 2)
+            )
+            .shadow(color: .black.opacity(0.04), radius: 4)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(isSelected ? Color.theme.tintPurple : Color.theme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(isSelected ? Color.theme.primary : Color.clear, lineWidth: 2)
-        )
-        .shadow(color: .black.opacity(0.04), radius: 4)
     }
 
     // MARK: - Weight Log
@@ -235,7 +336,7 @@ struct LogScreen: View {
                     .foregroundStyle(Color.theme.textPrimary)
 
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("96.5")
+                    Text(String(format: "%.1f", weightValue))
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.theme.textPrimary)
                     Text("kg")
@@ -244,7 +345,7 @@ struct LogScreen: View {
                 }
 
                 HStack(spacing: 24) {
-                    Button { } label: {
+                    Button { weightValue = max(40, weightValue - 0.1) } label: {
                         Image(systemName: "minus.circle.fill")
                             .font(.system(size: 32))
                             .foregroundStyle(Color.theme.textMuted)
@@ -254,17 +355,25 @@ struct LogScreen: View {
                         .font(.cardCaption)
                         .foregroundStyle(Color.theme.textMuted)
 
-                    Button { } label: {
+                    Button { weightValue += 0.1 } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 32))
                             .foregroundStyle(Color.theme.primary)
                     }
                 }
+
+                if let goal = store.goal(for: .weight) {
+                    let diff = weightValue - goal.targetValue
+                    Text(String(format: "%.1f kg to goal (%.1f kg)", abs(diff), goal.targetValue))
+                        .font(.cardCaption)
+                        .foregroundStyle(diff > 0 ? Color.theme.warning : Color.theme.success)
+                }
             }
             .cardStyle()
 
-            // Save button
-            Button { } label: {
+            Button {
+                saveWeight()
+            } label: {
                 Text("Save Weight")
                     .font(.pillLabel)
                     .foregroundStyle(.white)
@@ -274,9 +383,19 @@ struct LogScreen: View {
                     .clipShape(Capsule())
             }
         }
+        .onAppear {
+            if let latest = store.latestWeight() {
+                weightValue = latest.weight
+            }
+        }
+    }
+
+    private func saveWeight() {
+        store.addWeight(date: .now, weight: weightValue)
+        showSaved("✅ Weight saved!")
     }
 }
 
 #Preview {
-    LogScreen()
+    LogScreen(store: HabitStore(modelContext: try! ModelContainer(for: Goal.self, MealEntry.self, DrinkEntry.self, WeightEntry.self, WorkoutEntry.self, Badge.self).mainContext))
 }

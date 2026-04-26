@@ -1,7 +1,10 @@
 import SwiftUI
+import SwiftData
 
 struct MainTabView: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedTab: Tab = .overview
+    @State private var store: HabitStore?
 
     enum Tab: String {
         case log, overview, goals, settings
@@ -9,25 +12,30 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Screen content
-            Group {
-                switch selectedTab {
-                case .log:
-                    LogScreen()
-                case .overview:
-                    OverviewScreen()
-                case .goals:
-                    GoalsScreen()
-                case .settings:
-                    SettingsScreen()
+            if let store {
+                Group {
+                    switch selectedTab {
+                    case .log:
+                        LogScreen(store: store)
+                    case .overview:
+                        OverviewScreen(store: store)
+                    case .goals:
+                        GoalsScreen(store: store)
+                    case .settings:
+                        SettingsScreen()
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Custom Tab Bar
             tabBar
         }
         .background(Color.theme.background)
+        .onAppear {
+            if store == nil {
+                store = HabitStore(modelContext: modelContext)
+            }
+        }
     }
 
     // MARK: - Custom Tab Bar

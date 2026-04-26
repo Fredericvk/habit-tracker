@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct OverviewScreen: View {
+    let store: HabitStore
     @State private var selectedSegment = 0
     private let segments = ["Day", "Week", "Month"]
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
                 Text("Overview")
                     .font(.screenTitle)
@@ -16,18 +16,16 @@ struct OverviewScreen: View {
             .padding(.horizontal, Layout.screenPadding)
             .padding(.top, 16)
 
-            // Segmented Control
             SegmentedPill(segments: segments, selected: $selectedSegment)
                 .padding(.horizontal, Layout.screenPadding)
                 .padding(.top, 12)
 
-            // Content
             TabView(selection: $selectedSegment) {
-                DayView()
+                DayView(store: store)
                     .tag(0)
-                WeekView()
+                WeekView(store: store)
                     .tag(1)
-                MonthView()
+                MonthView(store: store)
                     .tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -37,8 +35,4 @@ struct OverviewScreen: View {
         }
         .background(Color.theme.background)
     }
-}
-
-#Preview {
-    OverviewScreen()
 }

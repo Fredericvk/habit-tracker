@@ -1,44 +1,35 @@
 import SwiftUI
+import SwiftData
 
 struct MonthView: View {
+    let store: HabitStore
     @State private var expandedWeek: Int? = nil
+    @State private var displayedMonth = Date()
 
-    private let weekdays = ["M", "T", "W", "T", "F", "S", "S"]
-    private let weekNumbers = [14, 15, 16, 17]
-
-    // Sample calendar data (April 2025)
-    private let calendarWeeks: [[Int?]] = [
-        [nil, 1, 2, 3, 4, 5, 6],
-        [7, 8, 9, 10, 11, 12, 13],
-        [14, 15, 16, 17, 18, 19, 20],
-        [21, 22, 23, 24, 25, 26, 27],
-    ]
+    private var cal: Calendar { DateHelper.calendar }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: Layout.cardSpacing) {
                 // Month header
                 HStack {
-                    Button { } label: {
+                    Button { changeMonth(by: -1) } label: {
                         Image(systemName: "chevron.left")
                             .foregroundStyle(Color.theme.primary)
                     }
                     Spacer()
-                    Text("April 2025")
+                    Text(DateHelper.monthYear(displayedMonth))
                         .font(.cardTitle)
                         .foregroundStyle(Color.theme.textPrimary)
                     Spacer()
-                    Button { } label: {
+                    Button { changeMonth(by: 1) } label: {
                         Image(systemName: "chevron.right")
                             .foregroundStyle(Color.theme.primary)
                     }
                 }
                 .padding(.horizontal, 4)
 
-                // Calendar card
                 calendarCard
-
-                // Month stats
                 monthStatsCards
             }
             .padding(.horizontal, Layout.screenPadding)
@@ -47,40 +38,67 @@ struct MonthView: View {
         }
     }
 
+    // MARK: - Calendar Data
+
+    private var calendarWeeks: [[(Int, Date?)]] {
+        let start = DateHelper.startOfMonth(displayedMonth)
+        let range = cal.range(of: .day, in: .month, for: start)!
+        let firstWeekday = cal.component(.weekday, from: start)
+        // Convert to Monday=0 offset
+        let offset = (firstWeekday + 5) % 7
+
+        var weeks: [[(Int, Date?)]] = []
+        var currentWeek: [(Int, Date?)] = Array(repeating: (0, nil), count: offset)
+
+        for day in range {
+            let date = cal.date(byAdding: .day, value: day - 1, to: start)!
+            currentWeek.append((day, date))
+            if currentWeek.count == 7 {
+                weeks.append(currentWeek)
+                currentWeek = []
+            }
+        }
+        if !currentWeek.isEmpty {
+            while currentWeek.count < 7 {
+                currentWeek.append((0, nil))
+            }
+            weeks.append(currentWeek)
+        }
+        return weeks
+    }
+
     // MARK: - Calendar Card
 
     private var calendarCard: some View {
-        ZStack {
+        let weekdays = ["M", "T", "W", "T", "F", "S", "S"]
+
+        return ZStack {
             VStack(spacing: 6) {
-                // Weekday headers (with empty space for week number column)
                 HStack(spacing: 0) {
                     Text("Wk")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(Color.theme.textMuted)
                         .frame(width: 28)
 
-                    ForEach(weekdays, id: \.self) { day in
-                        Text(day)
+                    ForEach(weekdays.indices, id: \.self) { i in
+                        Text(weekdays[i])
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(Color.theme.textMuted)
                             .frame(maxWidth: .infinity)
                     }
                 }
 
-                // Calendar rows
                 ForEach(Array(calendarWeeks.enumerated()), id: \.offset) { weekIndex, week in
+                    let firstDate = week.first(where: { $0.1 != nil })?.1 ?? displayedMonth
+                    let weekNum = DateHelper.weekNumber(firstDate)
+
                     HStack(spacing: 0) {
-                        // Week number button
                         Button {
                             withAnimation(.spring(response: 0.3)) {
-                                if expandedWeek == weekIndex {
-                                    expandedWeek = nil
-                                } else {
-                                    expandedWeek = weekIndex
-                                }
+                                expandedWeek = expandedWeek == weekIndex ? nil : weekIndex
                             }
                         } label: {
-                            Text("\(weekNumbers[weekIndex])")
+                            Text("\(weekNum)")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundStyle(expandedWeek == weekIndex ? .white : Color.theme.primary)
                                 .frame(width: 22, height: 22)
@@ -89,10 +107,10 @@ struct MonthView: View {
                         }
                         .frame(width: 28)
 
-                        // Day cells
                         ForEach(0..<7, id: \.self) { dayIndex in
-                            if let day = week[dayIndex] {
-                                dayCell(day: day, isToday: day == 25)
+                            let (day, date) = week[dayIndex]
+                            if day > 0, let date {
+                                dayCell(day: day, isToday: cal.isDateInToday(date))
                             } else {
                                 Color.clear
                                     .frame(maxWidth: .infinity)
@@ -104,15 +122,14 @@ struct MonthView: View {
             }
             .cardStyle()
 
-            // Week detail overlay
-            if let weekIndex = expandedWeek {
-                weekDetailOverlay(weekIndex: weekIndex)
+            if let weekIndex = expandedWeek, weekIndex < calendarWeeks.count {
+                let week = calendarWeeks[weekIndex]
+                let firstDate = week.first(where: { $0.1 != nil })?.1 ?? displayedMonth
+                weekDetailOverlay(weekDate: firstDate)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
         }
     }
-
-    // MARK: - Day Cell
 
     private func dayCell(day: Int, isToday: Bool) -> some View {
         ZStack {
@@ -121,7 +138,6 @@ struct MonthView: View {
                     .fill(Color.theme.primary)
                     .frame(width: 28, height: 28)
             }
-
             Text("\(day)")
                 .font(.system(size: 13, weight: isToday ? .bold : .regular))
                 .foregroundStyle(isToday ? .white : Color.theme.textPrimary)
@@ -132,17 +148,19 @@ struct MonthView: View {
 
     // MARK: - Week Detail Overlay
 
-    private func weekDetailOverlay(weekIndex: Int) -> some View {
-        VStack(spacing: 8) {
+    private func weekDetailOverlay(weekDate: Date) -> some View {
+        let weekStart = DateHelper.startOfWeek(weekDate)
+        let weekNum = DateHelper.weekNumber(weekDate)
+        let days = DateHelper.daysInWeek(weekDate)
+
+        return VStack(spacing: 8) {
             HStack {
-                Text("Week \(weekNumbers[weekIndex])")
+                Text("Week \(weekNum)")
                     .font(.cardTitle)
                     .foregroundStyle(Color.theme.textPrimary)
                 Spacer()
                 Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        expandedWeek = nil
-                    }
+                    withAnimation(.spring(response: 0.3)) { expandedWeek = nil }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(Color.theme.textMuted)
@@ -150,11 +168,34 @@ struct MonthView: View {
                 }
             }
 
-            // Weekly grid rows
-            weekGridRow(label: "Cal", values: ["✓", "✓", "✗", "✓", "✓", "✓", "✓"], color: Color.theme.success)
-            weekGridRow(label: "Exercise", values: ["🏃", "—", "💪", "—", "🚶", "🏃", "—"], color: Color.theme.primary)
-            weekGridRow(label: "Snacking", values: ["✓", "✓", "✓", "✗", "✓", "—", "—"], color: Color.theme.success)
-            weekGridRow(label: "Alcohol", values: ["—", "2.3", "—", "—", "4.4", "4.6", "—"], color: Color.theme.warning)
+            // Calories row
+            weekGridRow(label: "Cal") { date in
+                let cals = store.totalCalories(for: date)
+                let goal = Int(store.goal(for: .calories)?.targetValue ?? 2300)
+                if cals == 0 && date > .now { return "—" }
+                return cals <= goal ? "✓" : "✗"
+            }
+
+            // Exercise row
+            weekGridRow(label: "Exercise") { date in
+                let workouts = store.workouts(for: date)
+                if workouts.isEmpty { return date > .now ? "—" : "·" }
+                return workouts.first?.isWalk == true ? "🚶" : "💪"
+            }
+
+            // Snacking row
+            weekGridRow(label: "Snacking") { date in
+                if date > .now { return "—" }
+                if DateHelper.isWeekend(date) { return "—" }
+                return store.hasSnacked(on: date) ? "✗" : "✓"
+            }
+
+            // Alcohol row
+            weekGridRow(label: "Alcohol") { date in
+                let units = store.totalUnits(for: date)
+                if units == 0 { return date > .now ? "—" : "·" }
+                return String(format: "%.1f", units)
+            }
         }
         .padding(Layout.cardPadding)
         .background(Color.theme.cardBackground)
@@ -162,17 +203,20 @@ struct MonthView: View {
         .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
     }
 
-    private func weekGridRow(label: String, values: [String], color: Color) -> some View {
-        HStack(spacing: 0) {
+    private func weekGridRow(label: String, valueFor: @escaping (Date) -> String) -> some View {
+        let days = DateHelper.daysInWeek(expandedWeek != nil ? (calendarWeeks[expandedWeek!].first(where: { $0.1 != nil })?.1 ?? displayedMonth) : displayedMonth)
+
+        return HStack(spacing: 0) {
             Text(label)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(Color.theme.textSecondary)
                 .frame(width: 60, alignment: .leading)
 
             ForEach(0..<7, id: \.self) { i in
-                Text(values[i])
+                let val = i < days.count ? valueFor(days[i]) : "—"
+                Text(val)
                     .font(.system(size: 11))
-                    .foregroundStyle(values[i] == "✗" ? Color.theme.danger : Color.theme.textPrimary)
+                    .foregroundStyle(val == "✗" ? Color.theme.danger : Color.theme.textPrimary)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -182,14 +226,18 @@ struct MonthView: View {
     // MARK: - Month Stats
 
     private var monthStatsCards: some View {
-        VStack(spacing: Layout.cardSpacing) {
+        let workoutsThisMonth = countWorkoutsInMonth()
+        let avgCal = avgCaloriesInMonth()
+        let avgUnits = avgWeeklyUnitsInMonth()
+
+        return VStack(spacing: Layout.cardSpacing) {
             HStack(spacing: Layout.cardSpacing) {
-                statCard(icon: "flame.fill", color: Color.theme.warning, label: "Avg Calories", value: "2,150", subtitle: "kcal/day")
-                statCard(icon: "figure.run", color: Color.theme.primary, label: "Workouts", value: "14", subtitle: "this month")
+                statCard(icon: "flame.fill", color: Color.theme.warning, label: "Avg Calories", value: avgCal > 0 ? "\(avgCal)" : "—", subtitle: "kcal/day")
+                statCard(icon: "figure.run", color: Color.theme.primary, label: "Workouts", value: "\(workoutsThisMonth)", subtitle: "this month")
             }
             HStack(spacing: Layout.cardSpacing) {
-                statCard(icon: "leaf.fill", color: Color.theme.success, label: "Clean Weeks", value: "3/4", subtitle: "no snacking")
-                statCard(icon: "drop.fill", color: Color.theme.warning, label: "Avg Alcohol", value: "12.5", subtitle: "units/week")
+                statCard(icon: "leaf.fill", color: Color.theme.success, label: "Clean Days", value: "\(cleanDaysInMonth())", subtitle: "no snacking")
+                statCard(icon: "drop.fill", color: Color.theme.warning, label: "Avg Alcohol", value: String(format: "%.1f", avgUnits), subtitle: "units/week")
             }
         }
     }
@@ -204,11 +252,9 @@ struct MonthView: View {
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textSecondary)
             }
-
             Text(value)
                 .font(.statMedium)
                 .foregroundStyle(Color.theme.textPrimary)
-
             Text(subtitle)
                 .font(.system(size: 11))
                 .foregroundStyle(Color.theme.textMuted)
@@ -216,8 +262,56 @@ struct MonthView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .cardStyle()
     }
-}
 
-#Preview {
-    MonthView()
+    // MARK: - Month computations
+
+    private func countWorkoutsInMonth() -> Int {
+        let start = DateHelper.startOfMonth(displayedMonth)
+        let end = DateHelper.endOfMonth(displayedMonth)
+        let descriptor = FetchDescriptor<WorkoutEntry>(
+            predicate: #Predicate { $0.date >= start && $0.date < end }
+        )
+        return (try? store.modelContext.fetchCount(descriptor)) ?? 0
+    }
+
+    private func avgCaloriesInMonth() -> Int {
+        let start = DateHelper.startOfMonth(displayedMonth)
+        let end = min(DateHelper.endOfMonth(displayedMonth), Date.now)
+        let dayCount = max(1, DateHelper.calendar.dateComponents([.day], from: start, to: end).day ?? 1)
+        var total = 0
+        var current = start
+        while current < end {
+            total += store.totalCalories(for: current)
+            current = cal.date(byAdding: .day, value: 1, to: current)!
+        }
+        return total / dayCount
+    }
+
+    private func cleanDaysInMonth() -> Int {
+        let start = DateHelper.startOfMonth(displayedMonth)
+        let end = min(DateHelper.endOfMonth(displayedMonth), Date.now)
+        var count = 0
+        var current = start
+        while current < end {
+            if DateHelper.isWeekday(current) && !store.hasSnacked(on: current) {
+                count += 1
+            }
+            current = cal.date(byAdding: .day, value: 1, to: current)!
+        }
+        return count
+    }
+
+    private func avgWeeklyUnitsInMonth() -> Double {
+        let weeks = DateHelper.weeksBetween(start: DateHelper.startOfMonth(displayedMonth), end: min(DateHelper.endOfMonth(displayedMonth), .now))
+        guard !weeks.isEmpty else { return 0 }
+        let totalUnits = weeks.reduce(0.0) { $0 + store.weeklyUnits($1) }
+        return totalUnits / Double(weeks.count)
+    }
+
+    private func changeMonth(by value: Int) {
+        withAnimation {
+            displayedMonth = cal.date(byAdding: .month, value: value, to: displayedMonth) ?? displayedMonth
+            expandedWeek = nil
+        }
+    }
 }

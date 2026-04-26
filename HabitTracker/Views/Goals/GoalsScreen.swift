@@ -1,11 +1,14 @@
 import SwiftUI
+import SwiftData
 
 struct GoalsScreen: View {
+    let store: HabitStore
     @State private var editingGoal: String? = nil
+
+    private var allGoals: [Goal] { store.goals() }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
                 Text("Goals")
                     .font(.screenTitle)
@@ -17,11 +20,9 @@ struct GoalsScreen: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: Layout.cardSpacing) {
-                    caloriesGoalCard
-                    exerciseGoalCard
-                    snackingGoalCard
-                    alcoholGoalCard
-                    weightGoalCard
+                    ForEach(allGoals, id: \.id) { goal in
+                        goalCardView(for: goal)
+                    }
                 }
                 .padding(.horizontal, Layout.screenPadding)
                 .padding(.top, 16)
@@ -31,15 +32,72 @@ struct GoalsScreen: View {
         .background(Color.theme.background)
     }
 
+    // MARK: - Goal Card Router
+
+    @ViewBuilder
+    private func goalCardView(for goal: Goal) -> some View {
+        let totalWeeks = DateHelper.weekCount(from: goal.startDate, to: goal.endDate)
+        let elapsedWeeks = DateHelper.weekCount(from: goal.startDate, to: min(.now, goal.endDate))
+        let remainingWeeks = max(0, totalWeeks - elapsedWeeks)
+        let successfulWeeks = computeSuccessfulWeeks(for: goal)
+
+        goalCard(
+            goal: goal,
+            target: targetDescription(for: goal),
+            weeksCompleted: successfulWeeks,
+            totalWeeks: totalWeeks,
+            weeksRemaining: remainingWeeks
+        ) {
+            editFields(for: goal)
+        }
+    }
+
+    private func targetDescription(for goal: Goal) -> String {
+        switch goal.type {
+        case "calories": return "≤ \(Int(goal.targetValue)) kcal per day"
+        case "exercise":
+            let w = goal.workoutsPerWeek ?? 4
+            let walks = goal.walksPerWeek ?? 3
+            return "\(w) workouts + \(walks) walks = \(Int(goal.targetValue)) active days/week"
+        case "snacking": return "≥ \(Int(goal.targetValue)) clean days per week"
+        case "alcohol": return "≤ \(Int(goal.targetValue)) units per week"
+        case "weight": return String(format: "Target: %.1f kg", goal.targetValue)
+        default: return ""
+        }
+    }
+
+    private func computeSuccessfulWeeks(for goal: Goal) -> Int {
+        let weeks = DateHelper.weeksBetween(start: goal.startDate, end: min(.now, goal.endDate))
+        var count = 0
+        for weekStart in weeks {
+            if weekStart >= DateHelper.startOfWeek(.now) { continue } // skip current week
+            switch goal.type {
+            case "calories":
+                let avg = store.avgCaloriesInWeek(weekStart)
+                if avg > 0 && avg <= Int(goal.targetValue) { count += 1 }
+            case "exercise":
+                let active = store.activeDaysInWeek(weekStart)
+                if active >= Int(goal.targetValue) { count += 1 }
+            case "snacking":
+                let clean = store.cleanWeekdays(in: weekStart)
+                if clean >= Int(goal.targetValue) { count += 1 }
+            case "alcohol":
+                let units = store.weeklyUnits(weekStart)
+                if units <= goal.targetValue { count += 1 }
+            case "weight":
+                // Weight: check if latest weight for that week is at or below target
+                break
+            default: break
+            }
+        }
+        return count
+    }
+
     // MARK: - Goal Card Template
 
     private func goalCard(
-        id: String,
-        icon: String,
-        iconColor: Color,
-        title: String,
+        goal: Goal,
         target: String,
-        dateRange: String,
         weeksCompleted: Int,
         totalWeeks: Int,
         weeksRemaining: Int,
@@ -47,17 +105,16 @@ struct GoalsScreen: View {
     ) -> some View {
         ZStack {
             VStack(alignment: .leading, spacing: 10) {
-                // Header row
                 HStack {
-                    Image(systemName: icon)
-                        .foregroundStyle(iconColor)
-                    Text(title)
+                    Image(systemName: goal.icon)
+                        .foregroundStyle(iconColor(for: goal.type))
+                    Text(goal.title)
                         .font(.cardTitle)
                         .foregroundStyle(Color.theme.textPrimary)
                     Spacer()
                     Button {
                         withAnimation(.spring(response: 0.3)) {
-                            editingGoal = id
+                            editingGoal = goal.type
                         }
                     } label: {
                         Text("Edit")
@@ -70,20 +127,16 @@ struct GoalsScreen: View {
                     }
                 }
 
-                // Target
                 Text(target)
                     .font(.statSmall)
                     .foregroundStyle(Color.theme.textPrimary)
 
-                // Date range
-                Text(dateRange)
+                Text("\(DateHelper.shortDate(goal.startDate)) – \(DateHelper.shortDate(goal.endDate))")
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textMuted)
 
-                // Weekly timeline
                 weeklyTimeline(completed: weeksCompleted, total: totalWeeks, remaining: weeksRemaining)
 
-                // Meta
                 HStack {
                     Text("\(weeksCompleted)/\(totalWeeks) weeks successful")
                         .font(.cardCaption)
@@ -96,13 +149,23 @@ struct GoalsScreen: View {
             }
             .cardStyle()
 
-            // Edit overlay
-            if editingGoal == id {
-                editOverlay(id: id) {
+            if editingGoal == goal.type {
+                editOverlay(goal: goal) {
                     editContent()
                 }
                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
+        }
+    }
+
+    private func iconColor(for type: String) -> Color {
+        switch type {
+        case "calories": return Color.theme.warning
+        case "exercise": return Color.theme.primary
+        case "snacking": return Color.theme.success
+        case "alcohol": return Color.theme.warning
+        case "weight": return Color.theme.primary
+        default: return Color.theme.textMuted
         }
     }
 
@@ -121,20 +184,17 @@ struct GoalsScreen: View {
     private func weekColor(index: Int, completed: Int, total: Int, remaining: Int) -> Color {
         let passedWeeks = total - remaining
         if index < passedWeeks {
-            // Past weeks — green if successful (simplified: first `completed` are green)
             return index < completed ? Color.theme.success : Color.theme.danger
         } else if index == passedWeeks {
-            // Current week — in progress
             return Color.theme.primary.opacity(0.5)
         } else {
-            // Future weeks
             return Color.theme.textMuted.opacity(0.2)
         }
     }
 
     // MARK: - Edit Overlay
 
-    private func editOverlay(id: String, @ViewBuilder content: @escaping () -> some View) -> some View {
+    private func editOverlay(goal: Goal, @ViewBuilder content: @escaping () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("Edit Goal")
@@ -142,9 +202,7 @@ struct GoalsScreen: View {
                     .foregroundStyle(Color.theme.textPrimary)
                 Spacer()
                 Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        editingGoal = nil
-                    }
+                    withAnimation(.spring(response: 0.3)) { editingGoal = nil }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(Color.theme.textMuted)
@@ -156,9 +214,7 @@ struct GoalsScreen: View {
 
             HStack(spacing: 12) {
                 Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        editingGoal = nil
-                    }
+                    withAnimation(.spring(response: 0.3)) { editingGoal = nil }
                 } label: {
                     Text("Cancel")
                         .font(.pillLabel)
@@ -170,9 +226,8 @@ struct GoalsScreen: View {
                 }
 
                 Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        editingGoal = nil
-                    }
+                    store.updateGoal(goal)
+                    withAnimation(.spring(response: 0.3)) { editingGoal = nil }
                 } label: {
                     Text("Save")
                         .font(.pillLabel)
@@ -190,25 +245,61 @@ struct GoalsScreen: View {
         .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
     }
 
-    // MARK: - Stepper Row Helper
+    // MARK: - Edit Fields per Goal Type
 
-    private func stepperRow(label: String, value: String, unit: String) -> some View {
+    @ViewBuilder
+    private func editFields(for goal: Goal) -> some View {
+        switch goal.type {
+        case "calories":
+            stepperRow(label: "Daily limit", value: Binding(get: { Int(goal.targetValue) }, set: { goal.targetValue = Double($0) }), unit: "kcal", step: 100)
+            dateRow(label: "Start", date: Binding(get: { goal.startDate }, set: { goal.startDate = $0 }))
+            dateRow(label: "End", date: Binding(get: { goal.endDate }, set: { goal.endDate = $0 }))
+
+        case "exercise":
+            stepperRow(label: "Workouts/week", value: Binding(get: { goal.workoutsPerWeek ?? 4 }, set: { goal.workoutsPerWeek = $0; goal.targetValue = Double($0 + (goal.walksPerWeek ?? 3)) }), unit: "days", step: 1)
+            stepperRow(label: "Walks/week", value: Binding(get: { goal.walksPerWeek ?? 3 }, set: { goal.walksPerWeek = $0; goal.targetValue = Double((goal.workoutsPerWeek ?? 4) + $0) }), unit: "days", step: 1)
+            dateRow(label: "Start", date: Binding(get: { goal.startDate }, set: { goal.startDate = $0 }))
+            dateRow(label: "End", date: Binding(get: { goal.endDate }, set: { goal.endDate = $0 }))
+
+        case "snacking":
+            stepperRow(label: "Clean days/week", value: Binding(get: { Int(goal.targetValue) }, set: { goal.targetValue = Double($0) }), unit: "days", step: 1)
+            dateRow(label: "Start", date: Binding(get: { goal.startDate }, set: { goal.startDate = $0 }))
+            dateRow(label: "End", date: Binding(get: { goal.endDate }, set: { goal.endDate = $0 }))
+
+        case "alcohol":
+            stepperRow(label: "Weekly limit", value: Binding(get: { Int(goal.targetValue) }, set: { goal.targetValue = Double($0) }), unit: "units", step: 1)
+            dateRow(label: "Start", date: Binding(get: { goal.startDate }, set: { goal.startDate = $0 }))
+            dateRow(label: "End", date: Binding(get: { goal.endDate }, set: { goal.endDate = $0 }))
+
+        case "weight":
+            stepperRowDouble(label: "Target weight", value: Binding(get: { goal.targetValue }, set: { goal.targetValue = $0 }), unit: "kg", step: 0.5)
+            dateRow(label: "Start", date: Binding(get: { goal.startDate }, set: { goal.startDate = $0 }))
+            dateRow(label: "End", date: Binding(get: { goal.endDate }, set: { goal.endDate = $0 }))
+
+        default:
+            EmptyView()
+        }
+    }
+
+    // MARK: - Stepper Helpers
+
+    private func stepperRow(label: String, value: Binding<Int>, unit: String, step: Int) -> some View {
         HStack {
             Text(label)
                 .font(.cardBody)
                 .foregroundStyle(Color.theme.textSecondary)
             Spacer()
             HStack(spacing: 12) {
-                Button { } label: {
+                Button { value.wrappedValue = max(0, value.wrappedValue - step) } label: {
                     Image(systemName: "minus.circle.fill")
                         .font(.system(size: 24))
                         .foregroundStyle(Color.theme.textMuted)
                 }
-                Text(value)
+                Text("\(value.wrappedValue)")
                     .font(.statSmall)
                     .foregroundStyle(Color.theme.textPrimary)
                     .frame(width: 44)
-                Button { } label: {
+                Button { value.wrappedValue += step } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 24))
                         .foregroundStyle(Color.theme.primary)
@@ -216,122 +307,44 @@ struct GoalsScreen: View {
                 Text(unit)
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textMuted)
-                    .frame(width: 50, alignment: .leading)
+                    .frame(width: 44, alignment: .leading)
             }
         }
     }
 
-    private func dateRow(label: String, date: String) -> some View {
+    private func stepperRowDouble(label: String, value: Binding<Double>, unit: String, step: Double) -> some View {
         HStack {
             Text(label)
                 .font(.cardBody)
                 .foregroundStyle(Color.theme.textSecondary)
             Spacer()
-            Text(date)
-                .font(.cardBody)
-                .foregroundStyle(Color.theme.primary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.theme.tintPurple)
-                .clipShape(Capsule())
+            HStack(spacing: 12) {
+                Button { value.wrappedValue = max(0, value.wrappedValue - step) } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(Color.theme.textMuted)
+                }
+                Text(String(format: "%.1f", value.wrappedValue))
+                    .font(.statSmall)
+                    .foregroundStyle(Color.theme.textPrimary)
+                    .frame(width: 44)
+                Button { value.wrappedValue += step } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(Color.theme.primary)
+                }
+                Text(unit)
+                    .font(.cardCaption)
+                    .foregroundStyle(Color.theme.textMuted)
+                    .frame(width: 44, alignment: .leading)
+            }
         }
     }
 
-    // MARK: - Individual Goal Cards
-
-    private var caloriesGoalCard: some View {
-        goalCard(
-            id: "calories",
-            icon: "flame.fill",
-            iconColor: Color.theme.warning,
-            title: "Daily Calories",
-            target: "≤ 2,300 kcal per day",
-            dateRange: "Apr 14 – Jun 1, 2025",
-            weeksCompleted: 2,
-            totalWeeks: 7,
-            weeksRemaining: 5
-        ) {
-            stepperRow(label: "Daily limit", value: "2,300", unit: "kcal")
-            dateRow(label: "Start", date: "Apr 14")
-            dateRow(label: "End", date: "Jun 1")
-        }
+    private func dateRow(label: String, date: Binding<Date>) -> some View {
+        DatePicker(label, selection: date, displayedComponents: .date)
+            .font(.cardBody)
+            .foregroundStyle(Color.theme.textSecondary)
+            .tint(Color.theme.primary)
     }
-
-    private var exerciseGoalCard: some View {
-        goalCard(
-            id: "exercise",
-            icon: "figure.run",
-            iconColor: Color.theme.primary,
-            title: "Exercise",
-            target: "4 workouts + 3 walks = 7 active days/week",
-            dateRange: "Apr 14 – Jun 1, 2025",
-            weeksCompleted: 2,
-            totalWeeks: 7,
-            weeksRemaining: 5
-        ) {
-            stepperRow(label: "Workouts/week", value: "4", unit: "days")
-            stepperRow(label: "Walks/week", value: "3", unit: "days")
-            stepperRow(label: "Active days", value: "7", unit: "days")
-            dateRow(label: "Start", date: "Apr 14")
-            dateRow(label: "End", date: "Jun 1")
-        }
-    }
-
-    private var snackingGoalCard: some View {
-        goalCard(
-            id: "snacking",
-            icon: "leaf.fill",
-            iconColor: Color.theme.success,
-            title: "No Snacking",
-            target: "≥ 5 clean days per week",
-            dateRange: "Apr 14 – Jun 1, 2025",
-            weeksCompleted: 1,
-            totalWeeks: 7,
-            weeksRemaining: 5
-        ) {
-            stepperRow(label: "Clean days/week", value: "5", unit: "days")
-            dateRow(label: "Start", date: "Apr 14")
-            dateRow(label: "End", date: "Jun 1")
-        }
-    }
-
-    private var alcoholGoalCard: some View {
-        goalCard(
-            id: "alcohol",
-            icon: "drop.fill",
-            iconColor: Color.theme.warning,
-            title: "Alcohol",
-            target: "≤ 17 units per week",
-            dateRange: "Apr 14 – Jun 1, 2025",
-            weeksCompleted: 2,
-            totalWeeks: 7,
-            weeksRemaining: 5
-        ) {
-            stepperRow(label: "Weekly limit", value: "17", unit: "units")
-            dateRow(label: "Start", date: "Apr 14")
-            dateRow(label: "End", date: "Jun 1")
-        }
-    }
-
-    private var weightGoalCard: some View {
-        goalCard(
-            id: "weight",
-            icon: "scalemass.fill",
-            iconColor: Color.theme.primary,
-            title: "Weight",
-            target: "Target: 93.0 kg",
-            dateRange: "Apr 14 – Jul 1, 2025",
-            weeksCompleted: 2,
-            totalWeeks: 11,
-            weeksRemaining: 9
-        ) {
-            stepperRow(label: "Target weight", value: "93.0", unit: "kg")
-            dateRow(label: "Start", date: "Apr 14")
-            dateRow(label: "End", date: "Jul 1")
-        }
-    }
-}
-
-#Preview {
-    GoalsScreen()
 }
