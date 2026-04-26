@@ -214,12 +214,12 @@ struct MonthView: View {
 
     private func dayDotColor(for date: Date, today: Date) -> Color {
         var failures = 0
-        let dayMeals = mealsForDay(date)       // O(1) dict lookup
+        let dayMeals = mealsForDay(date)
         let cals = dayMeals.reduce(0) { $0 + $1.estimatedKcal }
         if cals > calorieGoalValue || cals == 0 { failures += 1 }
-        if workoutsForDay(date).isEmpty { failures += 1 }  // O(1) dict lookup
+        if workoutsForDay(date).isEmpty { failures += 1 }
         if dayMeals.contains(where: \.isSnack) { failures += 1 }
-        if drinksForDay(date).reduce(0, { $0 + $1.units }) > 0 { failures += 1 }  // O(1) dict lookup
+        if drinksForDay(date).reduce(0, { $0 + $1.units }) > 0 { failures += 1 }
 
         if failures == 0 { return Color.theme.success }
         if failures <= 2 { return Color.theme.warning }
