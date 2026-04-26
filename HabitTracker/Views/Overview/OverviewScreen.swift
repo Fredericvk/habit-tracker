@@ -3,6 +3,7 @@ import SwiftUI
 struct OverviewScreen: View {
     let store: HabitStore
     @State private var selectedSegment = 0
+    @State private var navigateToDate: Date? = nil
     private let segments = ["Day", "Week", "Month"]
 
     var body: some View {
@@ -21,11 +22,14 @@ struct OverviewScreen: View {
                 .padding(.top, 12)
 
             TabView(selection: $selectedSegment) {
-                DayView(store: store)
+                DayView(store: store, navigateToDate: $navigateToDate)
                     .tag(0)
                 WeekView(store: store)
                     .tag(1)
-                MonthView(store: store)
+                MonthView(store: store, onSelectDate: { date in
+                    navigateToDate = date
+                    withAnimation { selectedSegment = 0 }
+                })
                     .tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -35,4 +39,9 @@ struct OverviewScreen: View {
         }
         .background(Color.theme.background)
     }
+}
+
+#Preview {
+    OverviewScreen(store: PreviewContainer.store)
+        .modelContainer(PreviewContainer.container)
 }

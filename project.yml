@@ -20,8 +20,6 @@ targets:
     platform: iOS
     sources:
       - path: HabitTracker
-        excludes:
-          - "Preview Content"
     resources:
       - path: HabitTracker/Assets.xcassets
       - path: HabitTracker/Preview Content

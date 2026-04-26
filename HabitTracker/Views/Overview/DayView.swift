@@ -2,39 +2,26 @@ import SwiftUI
 
 struct DayView: View {
     let store: HabitStore
+    @Binding var navigateToDate: Date?
     @State private var selectedDate = Date()
 
-    private var calorieGoal: Double {
-        store.goal(for: .calories)?.targetValue ?? 2300
-    }
+    // Fetched once per date change
+    @State private var meals: [MealEntry] = []
+    @State private var workouts: [WorkoutEntry] = []
+    @State private var drinks: [DrinkEntry] = []
+    @State private var calorieGoalValue: Double = 2300
+    @State private var latestWeightValue: Double? = nil
 
-    private var todayCalories: Int {
-        store.totalCalories(for: selectedDate)
-    }
-
+    // Derived from fetched data (no DB hits)
+    private var totalCalories: Int { meals.reduce(0) { $0 + $1.estimatedKcal } }
     private var mealBreakdown: [String: Int] {
-        store.caloriesByMealType(for: selectedDate)
+        var result: [String: Int] = [:]
+        for meal in meals { result[meal.mealType, default: 0] += meal.estimatedKcal }
+        return result
     }
-
-    private var todayWorkouts: [WorkoutEntry] {
-        store.workouts(for: selectedDate)
-    }
-
-    private var todayDrinks: [DrinkEntry] {
-        store.drinks(for: selectedDate)
-    }
-
-    private var todayUnits: Double {
-        store.totalUnits(for: selectedDate)
-    }
-
-    private var hasSnackedToday: Bool {
-        store.hasSnacked(on: selectedDate)
-    }
-
-    private var latestWeight: Double? {
-        store.latestWeight()?.weight
-    }
+    private var snacks: [MealEntry] { meals.filter(\.isSnack) }
+    private var hasSnacked: Bool { !snacks.isEmpty }
+    private var totalUnits: Double { drinks.reduce(0) { $0 + $1.units } }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -52,6 +39,25 @@ struct DayView: View {
             .padding(.top, 12)
             .padding(.bottom, 100)
         }
+        .onAppear { refreshData() }
+        .onChange(of: selectedDate) { _, _ in refreshData() }
+        .onChange(of: store.dataVersion) { _, _ in refreshData() }
+        .onChange(of: navigateToDate) { _, newDate in
+            if let newDate {
+                selectedDate = newDate
+                navigateToDate = nil
+            }
+        }
+    }
+
+    private func refreshData() {
+        let dayStart = DateHelper.startOfDay(selectedDate)
+        let dayEnd = DateHelper.endOfDay(selectedDate)
+        meals = store.mealsInRange(from: dayStart, to: dayEnd)
+        workouts = store.workoutsInRange(from: dayStart, to: dayEnd)
+        drinks = store.drinksInRange(from: dayStart, to: dayEnd)
+        calorieGoalValue = store.cachedGoal(for: .calories)?.targetValue ?? 2300
+        latestWeightValue = store.latestWeight()?.weight
     }
 
     // MARK: - Date Navigation
@@ -98,7 +104,7 @@ struct DayView: View {
                     .font(.cardTitle)
                     .foregroundStyle(Color.theme.textPrimary)
                 Spacer()
-                if let w = latestWeight {
+                if let w = latestWeightValue {
                     Text(String(format: "%.1f kg", w))
                         .font(.cardCaption)
                         .foregroundStyle(Color.theme.textSecondary)
@@ -110,12 +116,12 @@ struct DayView: View {
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                let remaining = Int(calorieGoal) - todayCalories
+                let remaining = Int(calorieGoalValue) - totalCalories
                 HStack {
-                    Text("\(todayCalories)")
+                    Text("\(totalCalories)")
                         .font(.statMedium)
                         .foregroundStyle(Color.theme.textPrimary)
-                    Text("/ \(Int(calorieGoal)) kcal")
+                    Text("/ \(Int(calorieGoalValue)) kcal")
                         .font(.cardBody)
                         .foregroundStyle(Color.theme.textMuted)
                     Spacer()
@@ -124,7 +130,7 @@ struct DayView: View {
                         .foregroundStyle(remaining >= 0 ? Color.theme.success : Color.theme.danger)
                 }
 
-                let progress = min(Double(todayCalories) / calorieGoal, 1.0)
+                let progress = min(Double(totalCalories) / calorieGoalValue, 1.0)
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 6)
@@ -141,22 +147,34 @@ struct DayView: View {
 
             // Meal breakdown
             HStack(spacing: 0) {
-                mealChip(label: "B", value: "\(mealBreakdown["Breakfast"] ?? 0)", color: Color.theme.tintBlue)
+                mealChip(icon: "sunrise.fill", value: "\(mealBreakdown["Breakfast"] ?? 0)", color: Color.theme.tintBlue)
                 Spacer()
-                mealChip(label: "L", value: "\(mealBreakdown["Lunch"] ?? 0)", color: Color.theme.tintGreen)
+                mealChip(icon: "sun.max.fill", value: "\(mealBreakdown["Lunch"] ?? 0)", color: Color.theme.tintGreen)
                 Spacer()
-                mealChip(label: "D", value: "\(mealBreakdown["Dinner"] ?? 0)", color: Color.theme.tintPurple)
+                mealChip(icon: "moon.fill", value: "\(mealBreakdown["Dinner"] ?? 0)", color: Color.theme.tintPurple)
                 Spacer()
-                mealChip(label: "S", value: "\(mealBreakdown["Snack"] ?? 0)", color: Color.theme.tintAmber)
+                mealChip(icon: "leaf.fill", value: "\(mealBreakdown["Snack"] ?? 0)", color: Color.theme.tintAmber)
+            }
+
+            // Logged meals list
+            if !meals.isEmpty {
+                Divider()
+                    .padding(.vertical, 4)
+
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(meals, id: \.id) { meal in
+                        mealRow(meal: meal)
+                    }
+                }
             }
         }
         .cardStyle()
     }
 
-    private func mealChip(label: String, value: String, color: Color) -> some View {
+    private func mealChip(icon: String, value: String, color: Color) -> some View {
         VStack(spacing: 2) {
-            Text(label)
-                .font(.cardCaption)
+            Image(systemName: icon)
+                .font(.system(size: 12))
                 .foregroundStyle(Color.theme.textMuted)
             Text(value)
                 .font(.statSmall)
@@ -166,6 +184,42 @@ struct DayView: View {
         .padding(.vertical, 8)
         .background(color)
         .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func mealColor(for type: MealType) -> Color {
+        switch type {
+        case .breakfast: return Color.theme.primary
+        case .lunch: return Color.theme.success
+        case .dinner: return Color.theme.primary
+        case .snack: return Color.theme.warning
+        }
+    }
+
+    private func mealRow(meal: MealEntry) -> some View {
+        SwipeToDeleteRow {
+            HStack(spacing: 10) {
+                Image(systemName: meal.meal.icon)
+                    .font(.system(size: 14))
+                    .foregroundStyle(mealColor(for: meal.meal))
+                    .frame(width: 20)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(meal.itemDescription)
+                        .font(.cardBody)
+                        .foregroundStyle(Color.theme.textPrimary)
+                        .lineLimit(1)
+                    Text(meal.mealType)
+                        .font(.cardCaption)
+                        .foregroundStyle(Color.theme.textMuted)
+                }
+                Spacer()
+                Text("\(meal.estimatedKcal) kcal")
+                    .font(.cardCaption)
+                    .foregroundStyle(Color.theme.textSecondary)
+            }
+            .padding(.vertical, 6)
+        } onDelete: {
+            store.deleteMeal(meal)
+        }
     }
 
     // MARK: - Exercise Card
@@ -181,7 +235,7 @@ struct DayView: View {
                 Spacer()
             }
 
-            if todayWorkouts.isEmpty {
+            if workouts.isEmpty {
                 HStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Rest Day")
@@ -202,7 +256,7 @@ struct DayView: View {
                     }
                 }
             } else {
-                ForEach(todayWorkouts, id: \.id) { workout in
+                ForEach(workouts, id: \.id) { workout in
                     HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(workout.type)
@@ -243,8 +297,8 @@ struct DayView: View {
                     .foregroundStyle(Color.theme.textPrimary)
             }
 
-            if hasSnackedToday {
-                let snackCount = store.snacks(for: selectedDate).count
+            if hasSnacked {
+                let snackCount = snacks.count
                 Text("❌ \(snackCount) snack\(snackCount == 1 ? "" : "s")")
                     .font(.statSmall)
                     .foregroundStyle(Color.theme.danger)
@@ -254,7 +308,7 @@ struct DayView: View {
                     .foregroundStyle(Color.theme.success)
             }
 
-            Text(hasSnackedToday ? "Snacked today" : "No snacks today")
+            Text(hasSnacked ? "Snacked today" : "No snacks today")
                 .font(.cardCaption)
                 .foregroundStyle(Color.theme.textMuted)
         }
@@ -275,11 +329,11 @@ struct DayView: View {
                     .foregroundStyle(Color.theme.textPrimary)
             }
 
-            Text(String(format: "%.1f units", todayUnits))
+            Text(String(format: "%.1f units", totalUnits))
                 .font(.statSmall)
                 .foregroundStyle(Color.theme.textPrimary)
 
-            Text(todayDrinks.isEmpty ? "No drinks today" : "\(todayDrinks.count) drink\(todayDrinks.count == 1 ? "" : "s")")
+            Text(drinks.isEmpty ? "No drinks today" : "\(drinks.count) drink\(drinks.count == 1 ? "" : "s")")
                 .font(.cardCaption)
                 .foregroundStyle(Color.theme.textMuted)
         }
@@ -294,4 +348,9 @@ struct DayView: View {
             selectedDate = Calendar.current.date(byAdding: .day, value: days, to: selectedDate) ?? selectedDate
         }
     }
+}
+
+#Preview {
+    DayView(store: PreviewContainer.store, navigateToDate: .constant(nil))
+        .modelContainer(PreviewContainer.container)
 }

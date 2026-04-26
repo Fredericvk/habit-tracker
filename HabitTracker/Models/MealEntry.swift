@@ -31,7 +31,7 @@ final class MealEntry {
     var date: Date
     var mealType: String      // "Breakfast", "Lunch", "Dinner", "Snack"
     var itemDescription: String
-    var photo: Data?
+    @Attribute(.externalStorage) var photo: Data?
     var estimatedKcal: Int
     var inputMethod: String   // "manual" or "photo"
 

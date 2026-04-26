@@ -4,8 +4,7 @@ import SwiftData
 struct GoalsScreen: View {
     let store: HabitStore
     @State private var editingGoal: String? = nil
-
-    private var allGoals: [Goal] { store.goals() }
+    @State private var allGoals: [Goal] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,6 +29,8 @@ struct GoalsScreen: View {
             }
         }
         .background(Color.theme.background)
+        .onAppear { allGoals = store.cachedGoals() }
+        .onChange(of: store.dataVersion) { _, _ in allGoals = store.cachedGoals() }
     }
 
     // MARK: - Goal Card Router
@@ -66,31 +67,73 @@ struct GoalsScreen: View {
         }
     }
 
+    /// Batch-fetch entries for the entire goal range, then aggregate by week in memory
     private func computeSuccessfulWeeks(for goal: Goal) -> Int {
         let weeks = DateHelper.weeksBetween(start: goal.startDate, end: min(.now, goal.endDate))
-        var count = 0
-        for weekStart in weeks {
-            if weekStart >= DateHelper.startOfWeek(.now) { continue } // skip current week
-            switch goal.type {
-            case "calories":
-                let avg = store.avgCaloriesInWeek(weekStart)
+        let currentWeekStart = DateHelper.startOfWeek(.now)
+        let pastWeeks = weeks.filter { $0 < currentWeekStart }
+        guard !pastWeeks.isEmpty else { return 0 }
+
+        let rangeStart = pastWeeks.first!
+        let rangeEnd = DateHelper.endOfWeek(pastWeeks.last!)
+
+        switch goal.type {
+        case "calories":
+            let meals = store.mealsInRange(from: rangeStart, to: rangeEnd)
+            var count = 0
+            for weekStart in pastWeeks {
+                let weekEnd = DateHelper.endOfWeek(weekStart)
+                let weekMeals = meals.filter { $0.date >= weekStart && $0.date < weekEnd }
+                let today = DateHelper.startOfDay(.now)
+                let days = DateHelper.daysInWeek(weekStart)
+                let pastDays = days.filter { DateHelper.startOfDay($0) <= today }
+                guard !pastDays.isEmpty else { continue }
+                let total = weekMeals.reduce(0) { $0 + $1.estimatedKcal }
+                let avg = total / pastDays.count
                 if avg > 0 && avg <= Int(goal.targetValue) { count += 1 }
-            case "exercise":
-                let active = store.activeDaysInWeek(weekStart)
-                if active >= Int(goal.targetValue) { count += 1 }
-            case "snacking":
-                let clean = store.cleanWeekdays(in: weekStart)
-                if clean >= Int(goal.targetValue) { count += 1 }
-            case "alcohol":
-                let units = store.weeklyUnits(weekStart)
-                if units <= goal.targetValue { count += 1 }
-            case "weight":
-                // Weight: check if latest weight for that week is at or below target
-                break
-            default: break
             }
+            return count
+
+        case "exercise":
+            let workouts = store.workoutsInRange(from: rangeStart, to: rangeEnd)
+            var count = 0
+            for weekStart in pastWeeks {
+                let weekEnd = DateHelper.endOfWeek(weekStart)
+                let weekWorkouts = workouts.filter { $0.date >= weekStart && $0.date < weekEnd }
+                let activeDays = Set(weekWorkouts.map { DateHelper.startOfDay($0.date) }).count
+                if activeDays >= Int(goal.targetValue) { count += 1 }
+            }
+            return count
+
+        case "snacking":
+            let meals = store.mealsInRange(from: rangeStart, to: rangeEnd)
+            var count = 0
+            for weekStart in pastWeeks {
+                let weekEnd = DateHelper.endOfWeek(weekStart)
+                let snackDates = Set(meals.filter { $0.date >= weekStart && $0.date < weekEnd && $0.isSnack }.map { DateHelper.startOfDay($0.date) })
+                let today = DateHelper.startOfDay(.now)
+                let days = DateHelper.daysInWeek(weekStart)
+                let cleanDays = days.prefix(5).filter { day in
+                    let dayStart = DateHelper.startOfDay(day)
+                    return dayStart <= today && !snackDates.contains(dayStart)
+                }.count
+                if cleanDays >= Int(goal.targetValue) { count += 1 }
+            }
+            return count
+
+        case "alcohol":
+            let drinks = store.drinksInRange(from: rangeStart, to: rangeEnd)
+            var count = 0
+            for weekStart in pastWeeks {
+                let weekEnd = DateHelper.endOfWeek(weekStart)
+                let units = drinks.filter { $0.date >= weekStart && $0.date < weekEnd }.reduce(0.0) { $0 + $1.units }
+                if units <= goal.targetValue { count += 1 }
+            }
+            return count
+
+        default:
+            return 0
         }
-        return count
     }
 
     // MARK: - Goal Card Template
@@ -347,4 +390,9 @@ struct GoalsScreen: View {
             .foregroundStyle(Color.theme.textSecondary)
             .tint(Color.theme.primary)
     }
+}
+
+#Preview {
+    GoalsScreen(store: PreviewContainer.store)
+        .modelContainer(PreviewContainer.container)
 }

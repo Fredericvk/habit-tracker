@@ -15,10 +15,12 @@
 		32028A305DD243784172C46E /* GoalsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9CEC8AA1FA9A9BBC65881C5 /* GoalsScreen.swift */; };
 		33C53F4C7632AC8D080A8878 /* WeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2375E80E863D2408FEE8255C /* WeekView.swift */; };
 		467E66C5784CAD388D6C02D8 /* MonthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18865A0DFFB237A5DC3CB107 /* MonthView.swift */; };
+		468E2D208CEEFBB9E5069A7C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61C11E914795C7F88B12F04A /* Preview Assets.xcassets */; };
 		4AADE16B38675159C4311639 /* Goal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AA75F5E0C506C5B729E8F52 /* Goal.swift */; };
 		6203D72A70AB10ACF274B12B /* HabitStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92226F5F999CF083A6D14273 /* HabitStore.swift */; };
 		63E4BD62F7B622DBD22D93AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF9D38D77EB078C801B84738 /* Assets.xcassets */; };
 		8B9CE81E9C1EC1C58CFF1642 /* LogScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3833BDDDF1A1D25931ACFC1C /* LogScreen.swift */; };
+		8EB7FB795BADA469D2076EED /* PreviewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C23E8D266A509662655691DC /* PreviewContainer.swift */; };
 		9BB938704DBE95E1095FF9D5 /* OverviewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77580C4BAA0FA135865DEB94 /* OverviewScreen.swift */; };
 		9FF573FA5C7A22C13B8D2C0B /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099AA711C95A5BDEF8AD77E4 /* DateHelper.swift */; };
 		B2149F78C1AA1E1B151E3EC7 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C607B93620D832D2A70DA141 /* SettingsScreen.swift */; };
@@ -27,6 +29,7 @@
 		D139717140934374765908E1 /* DayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89388502604280EDE77FE06B /* DayView.swift */; };
 		E2F33A9F12E474D84D738973 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A2D40952B10C4FDC267E37 /* MainTabView.swift */; };
 		F30E3DD8314815EBC8E218BB /* DataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAFCDA7AB5B8907805858F60 /* DataSeeder.swift */; };
+		FD675482B6668230E673E622 /* SwipeToDeleteRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A888D830B68912C0515A94C2 /* SwipeToDeleteRow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +39,7 @@
 		223EEE9741AF7232777FAA91 /* MealEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEntry.swift; sourceTree = "<group>"; };
 		2375E80E863D2408FEE8255C /* WeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekView.swift; sourceTree = "<group>"; };
 		3833BDDDF1A1D25931ACFC1C /* LogScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogScreen.swift; sourceTree = "<group>"; };
+		61C11E914795C7F88B12F04A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		6301FCAA76F348B44F8BE9C7 /* HabitTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitTrackerApp.swift; sourceTree = "<group>"; };
 		6436812CE91BC9AA149CE840 /* WorkoutEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutEntry.swift; sourceTree = "<group>"; };
 		701E8845A15C914516B28E8F /* DrinkEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkEntry.swift; sourceTree = "<group>"; };
@@ -43,10 +47,12 @@
 		7AA75F5E0C506C5B729E8F52 /* Goal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goal.swift; sourceTree = "<group>"; };
 		89388502604280EDE77FE06B /* DayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayView.swift; sourceTree = "<group>"; };
 		92226F5F999CF083A6D14273 /* HabitStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitStore.swift; sourceTree = "<group>"; };
-		934C18A7F2EB31512CEB4A4E /* HabitTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HabitTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		934C18A7F2EB31512CEB4A4E /* HabitTracker.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HabitTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9CC23CC61A831C7BFFD1CE2B /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
 		A1A2D40952B10C4FDC267E37 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		A888D830B68912C0515A94C2 /* SwipeToDeleteRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeToDeleteRow.swift; sourceTree = "<group>"; };
 		A9CEC8AA1FA9A9BBC65881C5 /* GoalsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsScreen.swift; sourceTree = "<group>"; };
+		C23E8D266A509662655691DC /* PreviewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContainer.swift; sourceTree = "<group>"; };
 		C607B93620D832D2A70DA141 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 		DAFCDA7AB5B8907805858F60 /* DataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSeeder.swift; sourceTree = "<group>"; };
 		F5ACBADA570B2EBBB649DCF0 /* Badge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Badge.swift; sourceTree = "<group>"; };
@@ -73,6 +79,15 @@
 				6436812CE91BC9AA149CE840 /* WorkoutEntry.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		3864C39D9816523B1C6AD9A7 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				61C11E914795C7F88B12F04A /* Preview Assets.xcassets */,
+				C23E8D266A509662655691DC /* PreviewContainer.swift */,
+			);
+			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 		3B05A38B9513D1A3844EA5F7 /* Goals */ = {
@@ -110,6 +125,7 @@
 		8EFA1326C7BE48F45FA23765 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				A888D830B68912C0515A94C2 /* SwipeToDeleteRow.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -121,6 +137,7 @@
 				48DE7E647A1A1ED7AC7E6669 /* App */,
 				F82C8844E0CEC9523B433828 /* Design */,
 				2CEDC5272953824332C89E86 /* Models */,
+				3864C39D9816523B1C6AD9A7 /* Preview Content */,
 				C31E65DCE16EF06192345FA0 /* Services */,
 				235E42B14336039F7D129B71 /* ViewModels */,
 				FB4A59153CF6B03ACFF1A5F5 /* Views */,
@@ -221,7 +238,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					9E0E00F5452D1AB276ADAA3F = {
 						DevelopmentTeam = "";
@@ -254,6 +271,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				63E4BD62F7B622DBD22D93AA /* Assets.xcassets in Resources */,
+				468E2D208CEEFBB9E5069A7C /* Preview Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,7 +296,9 @@
 				1CE50811AC309F116586C996 /* MealEntry.swift in Sources */,
 				467E66C5784CAD388D6C02D8 /* MonthView.swift in Sources */,
 				9BB938704DBE95E1095FF9D5 /* OverviewScreen.swift in Sources */,
+				8EB7FB795BADA469D2076EED /* PreviewContainer.swift in Sources */,
 				B2149F78C1AA1E1B151E3EC7 /* SettingsScreen.swift in Sources */,
+				FD675482B6668230E673E622 /* SwipeToDeleteRow.swift in Sources */,
 				B5AAECD5057EF799AA482F78 /* Theme.swift in Sources */,
 				33C53F4C7632AC8D080A8878 /* WeekView.swift in Sources */,
 				12CC00E948A82E840B3F34F7 /* WeightEntry.swift in Sources */,
@@ -319,7 +339,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -354,7 +373,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -377,7 +395,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -414,7 +431,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -449,7 +465,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -465,7 +480,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;

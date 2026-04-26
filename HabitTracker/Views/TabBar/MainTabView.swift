@@ -52,15 +52,20 @@ struct MainTabView: View {
                     selectedTab = .overview
                 }
             } label: {
-                ZStack {
-                    Circle()
-                        .fill(Color.theme.primary)
-                        .frame(width: 56, height: 56)
-                        .shadow(color: Color.theme.primary.opacity(0.3), radius: 8, y: 4)
+                VStack(spacing: 2) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.theme.primary)
+                            .frame(width: 56, height: 56)
+                            .shadow(color: Color.theme.primary.opacity(0.3), radius: 8, y: 4)
 
-                    Image(systemName: "chart.bar.fill")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(.white)
+                        Image(systemName: "chart.bar.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    Text("Overview")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(selectedTab == .overview ? Color.theme.primary : Color.theme.textMuted)
                 }
             }
             .offset(y: -16)
@@ -99,4 +104,5 @@ struct MainTabView: View {
 
 #Preview {
     MainTabView()
+        .modelContainer(PreviewContainer.container)
 }

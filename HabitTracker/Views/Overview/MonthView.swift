@@ -3,8 +3,15 @@ import SwiftData
 
 struct MonthView: View {
     let store: HabitStore
+    var onSelectDate: ((Date) -> Void)? = nil
     @State private var expandedWeek: Int? = nil
     @State private var displayedMonth = Date()
+
+    // Pre-fetched month data (3 batch fetches instead of 150+)
+    @State private var monthMeals: [MealEntry] = []
+    @State private var monthWorkouts: [WorkoutEntry] = []
+    @State private var monthDrinks: [DrinkEntry] = []
+    @State private var calorieGoalValue: Int = 2300
 
     private var cal: Calendar { DateHelper.calendar }
 
@@ -36,6 +43,35 @@ struct MonthView: View {
             .padding(.top, 12)
             .padding(.bottom, 100)
         }
+        .onAppear { refreshData() }
+        .onChange(of: displayedMonth) { _, _ in refreshData() }
+        .onChange(of: store.dataVersion) { _, _ in refreshData() }
+    }
+
+    private func refreshData() {
+        let start = DateHelper.startOfMonth(displayedMonth)
+        let end = DateHelper.endOfMonth(displayedMonth)
+        monthMeals = store.mealsInRange(from: start, to: end)
+        monthWorkouts = store.workoutsInRange(from: start, to: end)
+        monthDrinks = store.drinksInRange(from: start, to: end)
+        calorieGoalValue = Int(store.cachedGoal(for: .calories)?.targetValue ?? 2300)
+    }
+
+    // Helper: filter pre-fetched data for a specific day
+    private func mealsForDay(_ date: Date) -> [MealEntry] {
+        let dayStart = DateHelper.startOfDay(date)
+        let dayEnd = DateHelper.endOfDay(date)
+        return monthMeals.filter { $0.date >= dayStart && $0.date < dayEnd }
+    }
+    private func workoutsForDay(_ date: Date) -> [WorkoutEntry] {
+        let dayStart = DateHelper.startOfDay(date)
+        let dayEnd = DateHelper.endOfDay(date)
+        return monthWorkouts.filter { $0.date >= dayStart && $0.date < dayEnd }
+    }
+    private func drinksForDay(_ date: Date) -> [DrinkEntry] {
+        let dayStart = DateHelper.startOfDay(date)
+        let dayEnd = DateHelper.endOfDay(date)
+        return monthDrinks.filter { $0.date >= dayStart && $0.date < dayEnd }
     }
 
     // MARK: - Calendar Data
@@ -44,7 +80,6 @@ struct MonthView: View {
         let start = DateHelper.startOfMonth(displayedMonth)
         let range = cal.range(of: .day, in: .month, for: start)!
         let firstWeekday = cal.component(.weekday, from: start)
-        // Convert to Monday=0 offset
         let offset = (firstWeekday + 5) % 7
 
         var weeks: [[(Int, Date?)]] = []
@@ -110,11 +145,15 @@ struct MonthView: View {
                         ForEach(0..<7, id: \.self) { dayIndex in
                             let (day, date) = week[dayIndex]
                             if day > 0, let date {
-                                dayCell(day: day, isToday: cal.isDateInToday(date))
+                                Button {
+                                    onSelectDate?(date)
+                                } label: {
+                                    dayCell(day: day, date: date, isToday: cal.isDateInToday(date))
+                                }
                             } else {
                                 Color.clear
                                     .frame(maxWidth: .infinity)
-                                    .frame(height: 32)
+                                    .frame(height: 40)
                             }
                         }
                     }
@@ -131,25 +170,48 @@ struct MonthView: View {
         }
     }
 
-    private func dayCell(day: Int, isToday: Bool) -> some View {
-        ZStack {
-            if isToday {
-                Circle()
-                    .fill(Color.theme.primary)
-                    .frame(width: 28, height: 28)
+    private func dayCell(day: Int, date: Date, isToday: Bool) -> some View {
+        VStack(spacing: 2) {
+            ZStack {
+                if isToday {
+                    Circle()
+                        .fill(Color.theme.primary)
+                        .frame(width: 28, height: 28)
+                }
+                Text("\(day)")
+                    .font(.system(size: 13, weight: isToday ? .bold : .regular))
+                    .foregroundStyle(isToday ? .white : Color.theme.textPrimary)
             }
-            Text("\(day)")
-                .font(.system(size: 13, weight: isToday ? .bold : .regular))
-                .foregroundStyle(isToday ? .white : Color.theme.textPrimary)
+
+            if DateHelper.startOfDay(date) <= DateHelper.startOfDay(.now) {
+                Circle()
+                    .fill(dayDotColor(for: date))
+                    .frame(width: 6, height: 6)
+            } else {
+                Color.clear.frame(width: 6, height: 6)
+            }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 32)
+        .frame(height: 40)
+    }
+
+    private func dayDotColor(for date: Date) -> Color {
+        var failures = 0
+        let dayMeals = mealsForDay(date)
+        let cals = dayMeals.reduce(0) { $0 + $1.estimatedKcal }
+        if cals > calorieGoalValue || cals == 0 { failures += 1 }
+        if workoutsForDay(date).isEmpty { failures += 1 }
+        if dayMeals.contains(where: \.isSnack) { failures += 1 }
+        if drinksForDay(date).reduce(0, { $0 + $1.units }) > 0 { failures += 1 }
+
+        if failures == 0 { return Color.theme.success }
+        if failures <= 2 { return Color.theme.warning }
+        return Color.theme.danger
     }
 
     // MARK: - Week Detail Overlay
 
     private func weekDetailOverlay(weekDate: Date) -> some View {
-        let weekStart = DateHelper.startOfWeek(weekDate)
         let weekNum = DateHelper.weekNumber(weekDate)
         let days = DateHelper.daysInWeek(weekDate)
 
@@ -168,31 +230,26 @@ struct MonthView: View {
                 }
             }
 
-            // Calories row
-            weekGridRow(label: "Cal") { date in
-                let cals = store.totalCalories(for: date)
-                let goal = Int(store.goal(for: .calories)?.targetValue ?? 2300)
+            weekGridRow(days: days, label: "Cal") { date in
+                let cals = mealsForDay(date).reduce(0) { $0 + $1.estimatedKcal }
                 if cals == 0 && date > .now { return "—" }
-                return cals <= goal ? "✓" : "✗"
+                return cals <= calorieGoalValue ? "✓" : "✗"
             }
 
-            // Exercise row
-            weekGridRow(label: "Exercise") { date in
-                let workouts = store.workouts(for: date)
-                if workouts.isEmpty { return date > .now ? "—" : "·" }
-                return workouts.first?.isWalk == true ? "🚶" : "💪"
+            weekGridRow(days: days, label: "Exercise") { date in
+                let dayWorkouts = workoutsForDay(date)
+                if dayWorkouts.isEmpty { return date > .now ? "—" : "·" }
+                return dayWorkouts.first?.isWalk == true ? "🚶" : "💪"
             }
 
-            // Snacking row
-            weekGridRow(label: "Snacking") { date in
+            weekGridRow(days: days, label: "Snacking") { date in
                 if date > .now { return "—" }
                 if DateHelper.isWeekend(date) { return "—" }
-                return store.hasSnacked(on: date) ? "✗" : "✓"
+                return mealsForDay(date).contains(where: \.isSnack) ? "✗" : "✓"
             }
 
-            // Alcohol row
-            weekGridRow(label: "Alcohol") { date in
-                let units = store.totalUnits(for: date)
+            weekGridRow(days: days, label: "Alcohol") { date in
+                let units = drinksForDay(date).reduce(0) { $0 + $1.units }
                 if units == 0 { return date > .now ? "—" : "·" }
                 return String(format: "%.1f", units)
             }
@@ -203,10 +260,8 @@ struct MonthView: View {
         .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
     }
 
-    private func weekGridRow(label: String, valueFor: @escaping (Date) -> String) -> some View {
-        let days = DateHelper.daysInWeek(expandedWeek != nil ? (calendarWeeks[expandedWeek!].first(where: { $0.1 != nil })?.1 ?? displayedMonth) : displayedMonth)
-
-        return HStack(spacing: 0) {
+    private func weekGridRow(days: [Date], label: String, valueFor: @escaping (Date) -> String) -> some View {
+        HStack(spacing: 0) {
             Text(label)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(Color.theme.textSecondary)
@@ -226,17 +281,18 @@ struct MonthView: View {
     // MARK: - Month Stats
 
     private var monthStatsCards: some View {
-        let workoutsThisMonth = countWorkoutsInMonth()
-        let avgCal = avgCaloriesInMonth()
-        let avgUnits = avgWeeklyUnitsInMonth()
+        let workoutCount = monthWorkouts.count
+        let avgCal = computeAvgCalories()
+        let cleanCount = computeCleanDays()
+        let avgUnits = computeAvgWeeklyUnits()
 
         return VStack(spacing: Layout.cardSpacing) {
             HStack(spacing: Layout.cardSpacing) {
                 statCard(icon: "flame.fill", color: Color.theme.warning, label: "Avg Calories", value: avgCal > 0 ? "\(avgCal)" : "—", subtitle: "kcal/day")
-                statCard(icon: "figure.run", color: Color.theme.primary, label: "Workouts", value: "\(workoutsThisMonth)", subtitle: "this month")
+                statCard(icon: "figure.run", color: Color.theme.primary, label: "Workouts", value: "\(workoutCount)", subtitle: "this month")
             }
             HStack(spacing: Layout.cardSpacing) {
-                statCard(icon: "leaf.fill", color: Color.theme.success, label: "Clean Days", value: "\(cleanDaysInMonth())", subtitle: "no snacking")
+                statCard(icon: "leaf.fill", color: Color.theme.success, label: "Clean Days", value: "\(cleanCount)", subtitle: "no snacking")
                 statCard(icon: "drop.fill", color: Color.theme.warning, label: "Avg Alcohol", value: String(format: "%.1f", avgUnits), subtitle: "units/week")
             }
         }
@@ -263,37 +319,24 @@ struct MonthView: View {
         .cardStyle()
     }
 
-    // MARK: - Month computations
+    // MARK: - Month computations (from pre-fetched data)
 
-    private func countWorkoutsInMonth() -> Int {
-        let start = DateHelper.startOfMonth(displayedMonth)
-        let end = DateHelper.endOfMonth(displayedMonth)
-        let descriptor = FetchDescriptor<WorkoutEntry>(
-            predicate: #Predicate { $0.date >= start && $0.date < end }
-        )
-        return (try? store.modelContext.fetchCount(descriptor)) ?? 0
-    }
-
-    private func avgCaloriesInMonth() -> Int {
+    private func computeAvgCalories() -> Int {
         let start = DateHelper.startOfMonth(displayedMonth)
         let end = min(DateHelper.endOfMonth(displayedMonth), Date.now)
         let dayCount = max(1, DateHelper.calendar.dateComponents([.day], from: start, to: end).day ?? 1)
-        var total = 0
-        var current = start
-        while current < end {
-            total += store.totalCalories(for: current)
-            current = cal.date(byAdding: .day, value: 1, to: current)!
-        }
+        let total = monthMeals.reduce(0) { $0 + $1.estimatedKcal }
         return total / dayCount
     }
 
-    private func cleanDaysInMonth() -> Int {
+    private func computeCleanDays() -> Int {
         let start = DateHelper.startOfMonth(displayedMonth)
         let end = min(DateHelper.endOfMonth(displayedMonth), Date.now)
+        let snackDates = Set(monthMeals.filter(\.isSnack).map { DateHelper.startOfDay($0.date) })
         var count = 0
         var current = start
         while current < end {
-            if DateHelper.isWeekday(current) && !store.hasSnacked(on: current) {
+            if DateHelper.isWeekday(current) && !snackDates.contains(DateHelper.startOfDay(current)) {
                 count += 1
             }
             current = cal.date(byAdding: .day, value: 1, to: current)!
@@ -301,10 +344,10 @@ struct MonthView: View {
         return count
     }
 
-    private func avgWeeklyUnitsInMonth() -> Double {
+    private func computeAvgWeeklyUnits() -> Double {
         let weeks = DateHelper.weeksBetween(start: DateHelper.startOfMonth(displayedMonth), end: min(DateHelper.endOfMonth(displayedMonth), .now))
         guard !weeks.isEmpty else { return 0 }
-        let totalUnits = weeks.reduce(0.0) { $0 + store.weeklyUnits($1) }
+        let totalUnits = monthDrinks.reduce(0.0) { $0 + $1.units }
         return totalUnits / Double(weeks.count)
     }
 
@@ -314,4 +357,9 @@ struct MonthView: View {
             expandedWeek = nil
         }
     }
+}
+
+#Preview {
+    MonthView(store: PreviewContainer.store)
+        .modelContainer(PreviewContainer.container)
 }

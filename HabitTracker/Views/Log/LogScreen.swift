@@ -96,24 +96,14 @@ struct LogScreen: View {
 
     private var foodLog: some View {
         VStack(spacing: Layout.cardSpacing) {
-            // Input mode toggle
-            HStack(spacing: 12) {
-                modeButton(icon: "pencil", label: "Manual", isSelected: !isPhotoMode) {
-                    isPhotoMode = false
-                }
-                modeButton(icon: "camera.fill", label: "Photo", isSelected: isPhotoMode) {
-                    isPhotoMode = true
-                }
-            }
-
-            // Meal type selector
+            // Meal type selector (Breakfast, Lunch, Dinner only)
             VStack(alignment: .leading, spacing: 10) {
                 Text("Meal")
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textMuted)
 
                 HStack(spacing: 8) {
-                    ForEach(MealType.allCases, id: \.self) { meal in
+                    ForEach([MealType.breakfast, .lunch, .dinner], id: \.self) { meal in
                         mealTypeButton(meal: meal, isSelected: meal == selectedMealType) {
                             selectedMealType = meal
                         }
@@ -122,38 +112,64 @@ struct LogScreen: View {
             }
             .cardStyle()
 
-            // Food input
+            // Snack card
             VStack(alignment: .leading, spacing: 10) {
-                Text("What did you eat?")
+                Text("Snack")
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textMuted)
 
-                TextField("e.g., Grilled chicken with rice", text: $foodDescription)
-                    .textFieldStyle(.plain)
-                    .padding(12)
-                    .background(Color.theme.background)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                HStack {
-                    Text("Est. Calories")
-                        .font(.cardCaption)
-                        .foregroundStyle(Color.theme.textMuted)
-                    Spacer()
-                    TextField("kcal", text: $foodKcal)
-                        .textFieldStyle(.plain)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 80)
-                        .padding(8)
-                        .background(Color.theme.background)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                HStack(spacing: 8) {
+                    mealTypeButton(meal: .snack, isSelected: selectedMealType == .snack) {
+                        selectedMealType = .snack
+                    }
                 }
             }
             .cardStyle()
 
+            // Input mode toggle
+            HStack(spacing: 12) {
+                modeButton(icon: "pencil", label: "Manual", isSelected: !isPhotoMode) {
+                    isPhotoMode = false
+                }
+                modeButton(icon: "camera.fill", label: "Photo", isSelected: isPhotoMode) {
+                    // Placeholder — no action for now
+                }
+            }
+
+            // Food input (only shown in manual mode)
+            if !isPhotoMode {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("What did you eat?")
+                        .font(.cardCaption)
+                        .foregroundStyle(Color.theme.textMuted)
+
+                    TextField("e.g., Grilled chicken with rice", text: $foodDescription)
+                        .textFieldStyle(.plain)
+                        .padding(12)
+                        .background(Color.theme.background)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    HStack {
+                        Text("Est. Calories")
+                            .font(.cardCaption)
+                            .foregroundStyle(Color.theme.textMuted)
+                        Spacer()
+                        TextField("kcal", text: $foodKcal)
+                            .textFieldStyle(.plain)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 80)
+                            .padding(8)
+                            .background(Color.theme.background)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                }
+                .cardStyle()
+            }
+
             // Today's total
             let todayCal = store.totalCalories(for: .now)
-            let calorieGoal = store.goal(for: .calories)?.targetValue ?? 2300
+            let calorieGoal = store.cachedGoal(for: .calories)?.targetValue ?? 2300
             HStack {
                 Text("Today so far:")
                     .font(.cardCaption)
@@ -169,15 +185,15 @@ struct LogScreen: View {
             Button {
                 saveMeal()
             } label: {
-                Text("Save Meal")
+                Text("Save \(selectedMealType == .snack ? "Snack" : "Meal")")
                     .font(.pillLabel)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(foodDescription.isEmpty ? Color.theme.textMuted : Color.theme.primary)
+                    .background(foodDescription.isEmpty || isPhotoMode ? Color.theme.textMuted : Color.theme.primary)
                     .clipShape(Capsule())
             }
-            .disabled(foodDescription.isEmpty)
+            .disabled(foodDescription.isEmpty || isPhotoMode)
         }
     }
 
@@ -273,7 +289,7 @@ struct LogScreen: View {
 
             // Weekly total
             let weekUnits = store.weeklyUnits(.now)
-            let unitGoal = store.goal(for: .alcohol)?.targetValue ?? 17
+            let unitGoal = store.cachedGoal(for: .alcohol)?.targetValue ?? 17
             HStack {
                 Text("This week:")
                     .font(.cardCaption)
@@ -362,7 +378,7 @@ struct LogScreen: View {
                     }
                 }
 
-                if let goal = store.goal(for: .weight) {
+                if let goal = store.cachedGoal(for: .weight) {
                     let diff = weightValue - goal.targetValue
                     Text(String(format: "%.1f kg to goal (%.1f kg)", abs(diff), goal.targetValue))
                         .font(.cardCaption)
@@ -397,5 +413,6 @@ struct LogScreen: View {
 }
 
 #Preview {
-    LogScreen(store: HabitStore(modelContext: try! ModelContainer(for: Goal.self, MealEntry.self, DrinkEntry.self, WeightEntry.self, WorkoutEntry.self, Badge.self).mainContext))
+    LogScreen(store: PreviewContainer.store)
+        .modelContainer(PreviewContainer.container)
 }
