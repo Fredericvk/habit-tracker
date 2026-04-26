@@ -12,13 +12,9 @@ struct DayView: View {
     @State private var calorieGoalValue: Double = 2300
     @State private var latestWeightValue: Double? = nil
 
-    // Derived from fetched data (no DB hits)
+    // Derived from fetched data — no DB hits, populated in refreshDayData()
+    @State private var mealBreakdown: [String: Int] = [:]
     private var totalCalories: Int { meals.reduce(0) { $0 + $1.estimatedKcal } }
-    private var mealBreakdown: [String: Int] {
-        var result: [String: Int] = [:]
-        for meal in meals { result[meal.mealType, default: 0] += meal.estimatedKcal }
-        return result
-    }
     private var snacks: [MealEntry] { meals.filter(\.isSnack) }
     private var hasSnacked: Bool { !snacks.isEmpty }
     private var totalUnits: Double { drinks.reduce(0) { $0 + $1.units } }
@@ -39,9 +35,11 @@ struct DayView: View {
             .padding(.top, 12)
             .padding(.bottom, 100)
         }
-        .onAppear { refreshData() }
-        .onChange(of: selectedDate) { _, _ in refreshData() }
-        .onChange(of: store.dataVersion) { _, _ in refreshData() }
+        .onAppear { refreshAllData() }
+        // Date navigation only needs to reload the day's entries, not global data.
+        .onChange(of: selectedDate) { _, _ in refreshDayData() }
+        // A data save may affect any category, so reload everything.
+        .onChange(of: store.dataVersion) { _, _ in refreshAllData() }
         .onChange(of: navigateToDate) { _, newDate in
             if let newDate {
                 selectedDate = newDate
@@ -50,14 +48,29 @@ struct DayView: View {
         }
     }
 
-    private func refreshData() {
+    // Reloads entries for the selected day and rebuilds derived state.
+    private func refreshDayData() {
         let dayStart = DateHelper.startOfDay(selectedDate)
         let dayEnd = DateHelper.endOfDay(selectedDate)
         meals = store.mealsInRange(from: dayStart, to: dayEnd)
         workouts = store.workoutsInRange(from: dayStart, to: dayEnd)
         drinks = store.drinksInRange(from: dayStart, to: dayEnd)
+
+        // Rebuild meal breakdown dict so body never iterates meals itself.
+        var breakdown: [String: Int] = [:]
+        for meal in meals { breakdown[meal.mealType, default: 0] += meal.estimatedKcal }
+        mealBreakdown = breakdown
+    }
+
+    // Reloads goals and the latest weight reading (not date-specific).
+    private func refreshGlobalData() {
         calorieGoalValue = store.cachedGoal(for: .calories)?.targetValue ?? 2300
         latestWeightValue = store.latestWeight()?.weight
+    }
+
+    private func refreshAllData() {
+        refreshDayData()
+        refreshGlobalData()
     }
 
     // MARK: - Date Navigation

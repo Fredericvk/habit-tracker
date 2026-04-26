@@ -59,7 +59,7 @@ struct SettingsScreen: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(Color(hex: "FC4C02")) // Strava orange
+                    .background(Color.theme.stravaOrange)
                     .clipShape(Capsule())
             }
 

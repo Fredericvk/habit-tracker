@@ -15,10 +15,14 @@ struct WeekView: View {
     @State private var weightGoalValue: Double = 93.0
     @State private var currentWeightValue: Double? = nil
 
-    private var cal: Calendar { DateHelper.calendar }
-    private var weekDays: [Date] { DateHelper.daysInWeek(selectedWeekDate) }
-    private var weekStart: Date { DateHelper.startOfWeek(selectedWeekDate) }
-    private var weekEnd: Date { cal.date(byAdding: .day, value: 6, to: weekStart)! }
+    // Cached date values — recomputed in refreshData, not on every body eval
+    @State private var weekDays: [Date] = []
+    @State private var weekStart: Date = .now
+    @State private var weekEnd: Date = .now
+    @State private var isCurrentWeek: Bool = true
+
+    private let cal: Calendar = DateHelper.calendar
+    private let dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     // Derived from pre-fetched data (no DB hits)
     private var activeDays: Int {
@@ -43,8 +47,6 @@ struct WeekView: View {
         return total / pastDays.count
     }
 
-    private let dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: Layout.cardSpacing) {
@@ -67,6 +69,13 @@ struct WeekView: View {
     private func refreshData() {
         let start = DateHelper.startOfWeek(selectedWeekDate)
         let end = DateHelper.endOfWeek(selectedWeekDate)
+
+        // Cache date values so computed properties and card bodies don't recompute them.
+        weekStart = start
+        weekEnd = cal.date(byAdding: .day, value: 6, to: start)!
+        weekDays = DateHelper.daysInWeek(selectedWeekDate)
+        isCurrentWeek = start == DateHelper.startOfWeek(.now)
+
         weekMeals = store.mealsInRange(from: start, to: end)
         weekWorkouts = store.workoutsInRange(from: start, to: end)
         weekDrinks = store.drinksInRange(from: start, to: end)
@@ -126,10 +135,6 @@ struct WeekView: View {
         .padding(.horizontal, 8)
     }
 
-    private var isCurrentWeek: Bool {
-        DateHelper.startOfWeek(selectedWeekDate) == DateHelper.startOfWeek(.now)
-    }
-
     private func moveWeek(by value: Int) {
         withAnimation {
             selectedWeekDate = cal.date(byAdding: .weekOfYear, value: value, to: selectedWeekDate) ?? selectedWeekDate
@@ -139,7 +144,8 @@ struct WeekView: View {
     // MARK: - Exercise Week Card
 
     private var exerciseWeekCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let today = DateHelper.startOfDay(.now)
+        return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Image(systemName: "figure.run")
                     .foregroundStyle(Color.theme.primary)
@@ -160,7 +166,7 @@ struct WeekView: View {
                 ForEach(0..<7, id: \.self) { i in
                     let date = weekDays[i]
                     let dayWorkouts = workoutsForDay(date)
-                    let isPast = DateHelper.startOfDay(date) <= DateHelper.startOfDay(.now)
+                    let isPast = DateHelper.startOfDay(date) <= today
 
                     VStack(spacing: 4) {
                         Text(dayLabels[i])
@@ -206,7 +212,8 @@ struct WeekView: View {
     // MARK: - Snacking Week Card
 
     private var snackingWeekCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let today = DateHelper.startOfDay(.now)
+        return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Image(systemName: "leaf.fill")
                     .foregroundStyle(Color.theme.success)
@@ -226,7 +233,7 @@ struct WeekView: View {
             HStack(spacing: 4) {
                 ForEach(0..<7, id: \.self) { i in
                     let date = weekDays[i]
-                    let isPast = DateHelper.startOfDay(date) <= DateHelper.startOfDay(.now)
+                    let isPast = DateHelper.startOfDay(date) <= today
                     let snacked = !mealsForDay(date).filter(\.isSnack).isEmpty
                     let isWeekend = DateHelper.isWeekend(date)
 
@@ -254,7 +261,8 @@ struct WeekView: View {
     // MARK: - Calories Week Card
 
     private var caloriesWeekCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let today = DateHelper.startOfDay(.now)
+        return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Image(systemName: "flame.fill")
                     .foregroundStyle(Color.theme.warning)
@@ -275,7 +283,7 @@ struct WeekView: View {
                 ForEach(0..<7, id: \.self) { i in
                     let date = weekDays[i]
                     let cals = mealsForDay(date).reduce(0) { $0 + $1.estimatedKcal }
-                    let isPast = DateHelper.startOfDay(date) <= DateHelper.startOfDay(.now)
+                    let isPast = DateHelper.startOfDay(date) <= today
 
                     VStack(spacing: 4) {
                         Text(dayLabels[i])
@@ -302,7 +310,8 @@ struct WeekView: View {
     // MARK: - Alcohol Week Card
 
     private var alcoholWeekCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let today = DateHelper.startOfDay(.now)
+        return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Image(systemName: "drop.fill")
                     .foregroundStyle(Color.theme.warning)
@@ -323,7 +332,7 @@ struct WeekView: View {
                 ForEach(0..<7, id: \.self) { i in
                     let date = weekDays[i]
                     let units = drinksForDay(date).reduce(0) { $0 + $1.units }
-                    let isPast = DateHelper.startOfDay(date) <= DateHelper.startOfDay(.now)
+                    let isPast = DateHelper.startOfDay(date) <= today
 
                     VStack(spacing: 4) {
                         Text(dayLabels[i])

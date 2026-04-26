@@ -19,9 +19,17 @@ struct LogScreen: View {
     // Weight state
     @State private var weightValue: Double = 96.5
 
+    // Cached query results (populated in refreshData, not inside body)
+    @State private var todayCal: Int = 0
+    @State private var calorieGoalVal: Double = 2300
+    @State private var weekUnits: Double = 0
+    @State private var unitGoalVal: Double = 17
+    @State private var weightGoalVal: Double? = nil
+
     // Feedback
     @State private var showSavedFeedback = false
     @State private var savedMessage = ""
+    @State private var dismissTask: Task<Void, Never>? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -60,6 +68,16 @@ struct LogScreen: View {
                 savedToast
             }
         }
+        .onAppear { refreshData() }
+        .onChange(of: store.dataVersion) { _, _ in refreshData() }
+    }
+
+    private func refreshData() {
+        todayCal = store.totalCalories(for: .now)
+        calorieGoalVal = store.cachedGoal(for: .calories)?.targetValue ?? 2300
+        weekUnits = store.weeklyUnits(.now)
+        unitGoalVal = store.cachedGoal(for: .alcohol)?.targetValue ?? 17
+        weightGoalVal = store.cachedGoal(for: .weight)?.targetValue
     }
 
     // MARK: - Saved Toast
@@ -78,17 +96,21 @@ struct LogScreen: View {
                 .padding(.bottom, 120)
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                withAnimation { showSavedFeedback = false }
-            }
-        }
     }
 
     private func showSaved(_ message: String) {
         savedMessage = message
         withAnimation(.spring(response: 0.3)) {
             showSavedFeedback = true
+        }
+        // Cancel any pending dismiss so rapid saves don't stack up timers.
+        dismissTask?.cancel()
+        dismissTask = Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation { showSavedFeedback = false }
+            }
         }
     }
 
@@ -167,17 +189,15 @@ struct LogScreen: View {
                 .cardStyle()
             }
 
-            // Today's total
-            let todayCal = store.totalCalories(for: .now)
-            let calorieGoal = store.cachedGoal(for: .calories)?.targetValue ?? 2300
+            // Today's total — reads from cached state, no DB hit in body
             HStack {
                 Text("Today so far:")
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textMuted)
                 Spacer()
-                Text("\(todayCal) / \(Int(calorieGoal)) kcal")
+                Text("\(todayCal) / \(Int(calorieGoalVal)) kcal")
                     .font(.statSmall)
-                    .foregroundStyle(Double(todayCal) > calorieGoal ? Color.theme.danger : Color.theme.success)
+                    .foregroundStyle(Double(todayCal) > calorieGoalVal ? Color.theme.danger : Color.theme.success)
             }
             .cardStyle()
 
@@ -287,17 +307,15 @@ struct LogScreen: View {
             }
             .cardStyle()
 
-            // Weekly total
-            let weekUnits = store.weeklyUnits(.now)
-            let unitGoal = store.cachedGoal(for: .alcohol)?.targetValue ?? 17
+            // Weekly total — reads from cached state, no DB hit in body
             HStack {
                 Text("This week:")
                     .font(.cardCaption)
                     .foregroundStyle(Color.theme.textMuted)
                 Spacer()
-                Text(String(format: "%.1f / %.0f units", weekUnits, unitGoal))
+                Text(String(format: "%.1f / %.0f units", weekUnits, unitGoalVal))
                     .font(.statSmall)
-                    .foregroundStyle(weekUnits > unitGoal ? Color.theme.danger : Color.theme.warning)
+                    .foregroundStyle(weekUnits > unitGoalVal ? Color.theme.danger : Color.theme.warning)
             }
             .cardStyle()
 
@@ -378,9 +396,10 @@ struct LogScreen: View {
                     }
                 }
 
-                if let goal = store.cachedGoal(for: .weight) {
-                    let diff = weightValue - goal.targetValue
-                    Text(String(format: "%.1f kg to goal (%.1f kg)", abs(diff), goal.targetValue))
+                // Reads from cached state — no DB hit in body
+                if let goalVal = weightGoalVal {
+                    let diff = weightValue - goalVal
+                    Text(String(format: "%.1f kg to goal (%.1f kg)", abs(diff), goalVal))
                         .font(.cardCaption)
                         .foregroundStyle(diff > 0 ? Color.theme.warning : Color.theme.success)
                 }
