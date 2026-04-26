@@ -118,35 +118,35 @@ struct LogScreen: View {
 
     private var foodLog: some View {
         VStack(spacing: Layout.cardSpacing) {
-            // Meal type selector (Breakfast, Lunch, Dinner only)
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Meal")
-                    .font(.cardCaption)
-                    .foregroundStyle(Color.theme.textMuted)
+            HStack(spacing: Layout.cardSpacing) {
+                // Meal type selector (Breakfast, Lunch, Dinner only)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Meal")
+                        .font(.cardCaption)
+                        .foregroundStyle(Color.theme.textMuted)
 
-                HStack(spacing: 8) {
-                    ForEach([MealType.breakfast, .lunch, .dinner], id: \.self) { meal in
-                        mealTypeButton(meal: meal, isSelected: meal == selectedMealType) {
-                            selectedMealType = meal
+                    HStack(spacing: 6) {
+                        ForEach([MealType.breakfast, .lunch, .dinner], id: \.self) { meal in
+                            mealTypeButton(meal: meal, isSelected: meal == selectedMealType) {
+                                selectedMealType = meal
+                            }
                         }
                     }
                 }
-            }
-            .cardStyle()
+                .cardStyle()
 
-            // Snack card
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Snack")
-                    .font(.cardCaption)
-                    .foregroundStyle(Color.theme.textMuted)
+                // Snack card
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Snack")
+                        .font(.cardCaption)
+                        .foregroundStyle(Color.theme.textMuted)
 
-                HStack(spacing: 8) {
                     mealTypeButton(meal: .snack, isSelected: selectedMealType == .snack) {
                         selectedMealType = .snack
                     }
                 }
+                .cardStyle()
             }
-            .cardStyle()
 
             // Input mode toggle
             HStack(spacing: 12) {
@@ -432,6 +432,5 @@ struct LogScreen: View {
 }
 
 #Preview {
-    LogScreen(store: PreviewContainer.store)
-        .modelContainer(PreviewContainer.container)
+    LogScreen(store: HabitStore(modelContext: try! ModelContainer(for: Goal.self, MealEntry.self, DrinkEntry.self, WeightEntry.self, WorkoutEntry.self, Badge.self).mainContext))
 }
