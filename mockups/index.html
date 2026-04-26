@@ -986,6 +986,26 @@ body {
   margin-top:8px; padding:6px;
   background:var(--bg-tertiary); border-radius:10px; border:1px solid var(--separator);
 }
+.goal-edit-overlay {
+  display:none; position:absolute; top:0; left:0; right:0; bottom:0;
+  background:#FFFFFF; border-radius:20px; padding:20px; z-index:10;
+  box-shadow:0 2px 16px rgba(0,0,0,0.08);
+  flex-direction:column;
+}
+.goal-edit-overlay.open { display:flex; }
+.goal-edit-overlay h3 { font-size:16px; font-weight:700; margin:0 0 16px; }
+.goal-edit-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--bg-tertiary); }
+.goal-edit-row:last-of-type { border-bottom:none; }
+.goal-edit-label { font-size:13px; font-weight:600; color:var(--text-secondary); }
+.goal-edit-value { font-size:14px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px; }
+.goal-edit-stepper { display:flex; align-items:center; gap:10px; }
+.goal-edit-stepper button { width:28px; height:28px; border-radius:50%; border:none; background:var(--tint-purple); color:var(--accent-purple); font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.goal-edit-stepper span { font-size:15px; font-weight:700; min-width:50px; text-align:center; }
+.goal-edit-date { font-size:13px; font-weight:600; color:var(--accent-purple); background:var(--tint-purple); border:none; padding:6px 12px; border-radius:10px; cursor:pointer; }
+.goal-edit-actions { display:flex; gap:10px; margin-top:auto; padding-top:16px; }
+.goal-edit-actions button { flex:1; padding:12px; border-radius:50px; font-size:14px; font-weight:700; cursor:pointer; border:none; }
+.goal-edit-save { background:var(--accent-purple); color:#fff; }
+.goal-edit-cancel { background:var(--bg-tertiary); color:var(--text-secondary); }
 
 /* Add Goal button */
 .add-goal-btn {
@@ -1480,77 +1500,6 @@ body {
 
       <!-- WEEK VIEW — progress tracking -->
       <div id="ov-week" class="overview-sub">
-        <div class="glass-card">
-          <div class="week-nav">
-            <div class="week-nav-btn" onclick="this.style.opacity=0.5">‹</div>
-            <div class="week-nav-title">Apr 21 – Apr 27</div>
-            <div class="week-nav-btn" style="opacity:0.3;pointer-events:none;">›</div>
-          </div>
-
-          <div class="week-grid">
-            <div class="wg-label-cell"></div>
-            <div class="wg-day-header" style="cursor:pointer;">Mon</div>
-            <div class="wg-day-header" style="cursor:pointer;">Tue</div>
-            <div class="wg-day-header" style="cursor:pointer;">Wed</div>
-            <div class="wg-day-header" style="cursor:pointer;">Thu</div>
-            <div class="wg-day-header today" style="cursor:pointer;">Fri</div>
-            <div class="wg-day-header future" style="cursor:pointer;">Sat</div>
-            <div class="wg-day-header future" style="cursor:pointer;">Sun</div>
-
-            <!-- Calories row -->
-            <div class="wg-label-cell"><span class="wg-tracker-name">Cal</span></div>
-            <div class="wg-cell cal-good"><span class="wg-val">2,180</span></div>
-            <div class="wg-cell cal-good"><span class="wg-val">2,050</span></div>
-            <div class="wg-cell cal-bad"><span class="wg-val">2,520</span></div>
-            <div class="wg-cell cal-good"><span class="wg-val">2,100</span></div>
-            <div class="wg-cell cal-inprogress"><span class="wg-val">1,480</span></div>
-            <div class="wg-cell cal-future"><span class="wg-val">—</span></div>
-            <div class="wg-cell cal-future"><span class="wg-val">—</span></div>
-
-            <!-- Exercise row -->
-            <div class="wg-label-cell"><span class="wg-tracker-name">Exercise</span></div>
-            <div class="wg-cell ex-yes"><span class="wg-val">🏃 45m</span></div>
-            <div class="wg-cell ex-no"><span class="wg-val">Rest</span></div>
-            <div class="wg-cell ex-yes"><span class="wg-val">🤸 60m</span></div>
-            <div class="wg-cell ex-yes"><span class="wg-val">🏋️ 50m</span></div>
-            <div class="wg-cell ex-inprogress"><span class="wg-val">—</span></div>
-            <div class="wg-cell ex-future"><span class="wg-val">—</span></div>
-            <div class="wg-cell ex-future"><span class="wg-val">—</span></div>
-
-            <!-- Snacking row -->
-            <div class="wg-label-cell"><span class="wg-tracker-name">Snacking</span></div>
-            <div class="wg-cell eat-clean"><span class="wg-val">✓ Clean</span></div>
-            <div class="wg-cell eat-clean"><span class="wg-val">✓ Clean</span></div>
-            <div class="wg-cell eat-clean"><span class="wg-val">✓ Clean</span></div>
-            <div class="wg-cell eat-clean"><span class="wg-val">✓ Clean</span></div>
-            <div class="wg-cell eat-inprogress"><span class="wg-val">○</span></div>
-            <div class="wg-cell eat-future"><span class="wg-val">—</span></div>
-            <div class="wg-cell eat-future"><span class="wg-val">—</span></div>
-
-            <!-- Alcohol row -->
-            <div class="wg-label-cell"><span class="wg-tracker-name">Alcohol</span></div>
-            <div class="wg-cell alc-none"><span class="wg-val">0u</span></div>
-            <div class="wg-cell alc-low"><span class="wg-val">4.6u</span></div>
-            <div class="wg-cell alc-none"><span class="wg-val">0u</span></div>
-            <div class="wg-cell alc-med"><span class="wg-val">4.6u</span></div>
-            <div class="wg-cell alc-low"><span class="wg-val">2.1u</span></div>
-            <div class="wg-cell alc-future"><span class="wg-val">—</span></div>
-            <div class="wg-cell alc-future"><span class="wg-val">—</span></div>
-
-            <!-- Separator before ratings -->
-            <div style="grid-column:1/-1;height:1px;background:var(--separator);margin:4px 0;opacity:0.5;"></div>
-
-            <!-- Day rating row -->
-            <div class="wg-label-cell"><span class="wg-tracker-name" style="font-size:10px;">Rating</span></div>
-            <div class="wg-cell wg-rating-cell"><div class="wg-rating green"></div></div>
-            <div class="wg-cell wg-rating-cell"><div class="wg-rating amber"></div></div>
-            <div class="wg-cell wg-rating-cell"><div class="wg-rating amber"></div></div>
-            <div class="wg-cell wg-rating-cell"><div class="wg-rating green"></div></div>
-            <div class="wg-cell wg-rating-cell"><div class="wg-rating none"></div></div>
-            <div class="wg-cell wg-rating-cell"><div class="wg-rating none"></div></div>
-            <div class="wg-cell wg-rating-cell"><div class="wg-rating none"></div></div>
-          </div>
-        </div>
 
         <!-- Donut progress rings — weekly goals -->
         <div class="glass-card" style="border:none;">
@@ -1746,17 +1695,270 @@ body {
     <div id="screen-goals" class="screen">
       <h1 class="screen-header">Goals</h1>
 
+      <!-- Calories Goal -->
+      <div class="glass-card goal-card" style="position:relative;">
+        <div class="goal-edit-overlay" id="edit-calories">
+          <h3>Edit Daily Calories</h3>
+          <div class="goal-edit-row"><span class="goal-edit-label">Daily limit</span><div class="goal-edit-stepper"><button>−</button><span>2,300 kcal</span><button>+</button></div></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">Start date</span><button class="goal-edit-date">14 Apr 2026</button></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">End date</span><button class="goal-edit-date">13 Jul 2026</button></div>
+          <div class="goal-edit-actions"><button class="goal-edit-cancel" onclick="closeGoalEdit('calories')">Cancel</button><button class="goal-edit-save" onclick="closeGoalEdit('calories')">Save</button></div>
+        </div>
+        <div class="goal-header">
+          <div class="goal-icon" style="background:var(--tint-purple);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c0-3 2.5-6 2.5-9 4 3.5 7.5 7.5 7.5 12a10 10 0 1 1-20 0c0-4.5 3.5-8.5 7.5-12 0 3 2.5 6 2.5 9z"/></svg>
+          </div>
+          <div class="goal-title-section">
+            <div class="goal-title">Daily Calories</div>
+            <div class="goal-subtitle">≤ 2,300 kcal/day</div>
+          </div>
+          <div class="goal-edit" onclick="openGoalEdit('calories')">Edit</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);font-weight:600;margin-bottom:6px;">
+          <span>14 Apr 2026</span><span>→</span><span>13 Jul 2026</span>
+        </div>
+        <div class="goal-progress-section">
+          <div class="goal-numbers">
+            <span class="goal-current">Avg 2,180 kcal</span>
+            <span class="goal-arrow">→</span>
+            <span class="goal-target">2,300 kcal</span>
+          </div>
+          <div style="display:flex;gap:3px;margin:8px 0;">
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-green);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-green);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-purple);opacity:0.4;"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+          </div>
+          <div class="goal-meta">
+            <span style="color:var(--accent-green);font-weight:600;">2/2 weeks on target ✓</span>
+            <span>11 weeks remaining</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exercise Goal -->
+      <div class="glass-card goal-card" style="position:relative;">
+        <div class="goal-edit-overlay" id="edit-exercise">
+          <h3>Edit Exercise</h3>
+          <div class="goal-edit-row"><span class="goal-edit-label">Workouts/week</span><div class="goal-edit-stepper"><button>−</button><span>4</span><button>+</button></div></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">Walks/week (30 min)</span><div class="goal-edit-stepper"><button>−</button><span>3</span><button>+</button></div></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">Active days/week</span><div class="goal-edit-stepper"><button>−</button><span>7</span><button>+</button></div></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">Start date</span><button class="goal-edit-date">7 Apr 2026</button></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">End date</span><button class="goal-edit-date">28 Sep 2026</button></div>
+          <div class="goal-edit-actions"><button class="goal-edit-cancel" onclick="closeGoalEdit('exercise')">Cancel</button><button class="goal-edit-save" onclick="closeGoalEdit('exercise')">Save</button></div>
+        </div>
+        <div class="goal-header">
+          <div class="goal-icon" style="background:var(--tint-blue);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          </div>
+          <div class="goal-title-section">
+            <div class="goal-title">Exercise</div>
+            <div class="goal-subtitle">7 active days/week · 4 workouts + 3 walks (30 min)</div>
+          </div>
+          <div class="goal-edit" onclick="openGoalEdit('exercise')">Edit</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);font-weight:600;margin-bottom:6px;">
+          <span>7 Apr 2026</span><span>→</span><span>28 Sep 2026</span>
+        </div>
+        <div class="goal-progress-section">
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <div style="flex:1;background:var(--tint-blue);border-radius:12px;padding:10px;text-align:center;">
+              <div style="font-size:20px;font-weight:800;color:var(--accent-blue);">3<small style="font-size:12px;font-weight:600;">/4</small></div>
+              <div style="font-size:10px;color:var(--text-secondary);font-weight:600;margin-top:2px;">Workouts</div>
+            </div>
+            <div style="flex:1;background:var(--tint-green);border-radius:12px;padding:10px;text-align:center;">
+              <div style="font-size:20px;font-weight:800;color:var(--accent-green);">1<small style="font-size:12px;font-weight:600;">/3</small></div>
+              <div style="font-size:10px;color:var(--text-secondary);font-weight:600;margin-top:2px;">30 min walks</div>
+            </div>
+            <div style="flex:1;background:var(--tint-purple);border-radius:12px;padding:10px;text-align:center;">
+              <div style="font-size:20px;font-weight:800;color:var(--accent-purple);">4<small style="font-size:12px;font-weight:600;">/7</small></div>
+              <div style="font-size:10px;color:var(--text-secondary);font-weight:600;margin-top:2px;">Active days</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:3px;margin:4px 0;">
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-green);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--danger);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-blue);opacity:0.4;"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+          </div>
+          <div class="goal-meta">
+            <span style="color:var(--accent-amber);font-weight:600;">1/3 weeks successful</span>
+            <span>22 weeks remaining</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Snacking Goal -->
+      <div class="glass-card goal-card" style="position:relative;">
+        <div class="goal-edit-overlay" id="edit-snacking">
+          <h3>Edit No Snacking</h3>
+          <div class="goal-edit-row"><span class="goal-edit-label">Clean days/week</span><div class="goal-edit-stepper"><button>−</button><span>5</span><button>+</button></div></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">Start date</span><button class="goal-edit-date">14 Apr 2026</button></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">End date</span><button class="goal-edit-date">31 May 2026</button></div>
+          <div class="goal-edit-actions"><button class="goal-edit-cancel" onclick="closeGoalEdit('snacking')">Cancel</button><button class="goal-edit-save" onclick="closeGoalEdit('snacking')">Save</button></div>
+        </div>
+        <div class="goal-header">
+          <div class="goal-icon" style="background:var(--tint-green);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+          </div>
+          <div class="goal-title-section">
+            <div class="goal-title">No Snacking</div>
+            <div class="goal-subtitle">≥ 5 clean days/week</div>
+          </div>
+          <div class="goal-edit" onclick="openGoalEdit('snacking')">Edit</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);font-weight:600;margin-bottom:6px;">
+          <span>14 Apr 2026</span><span>→</span><span>31 May 2026</span>
+        </div>
+        <div class="goal-progress-section">
+          <div class="goal-numbers">
+            <span class="goal-current">4 clean days this week</span>
+            <span class="goal-arrow">→</span>
+            <span class="goal-target">5 days</span>
+          </div>
+          <div style="display:flex;gap:3px;margin:8px 0;">
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-green);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-green);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-green);opacity:0.4;"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+          </div>
+          <div class="goal-meta">
+            <span style="color:var(--accent-green);font-weight:600;">2/2 weeks successful ✓</span>
+            <span>5 weeks remaining</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alcohol Goal -->
+      <div class="glass-card goal-card" style="position:relative;">
+        <div class="goal-edit-overlay" id="edit-alcohol">
+          <h3>Edit Alcohol</h3>
+          <div class="goal-edit-row"><span class="goal-edit-label">Weekly unit limit</span><div class="goal-edit-stepper"><button>−</button><span>17 units</span><button>+</button></div></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">Start date</span><button class="goal-edit-date">1 Apr 2026</button></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">End date</span><button class="goal-edit-date">31 Dec 2026</button></div>
+          <div class="goal-edit-actions"><button class="goal-edit-cancel" onclick="closeGoalEdit('alcohol')">Cancel</button><button class="goal-edit-save" onclick="closeGoalEdit('alcohol')">Save</button></div>
+        </div>
+        <div class="goal-header">
+          <div class="goal-icon" style="background:var(--tint-amber);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8l-1 7c-.3 2.2-2.1 4-4.5 4h-1C7.1 13 5.3 11.2 5 9L4 2"/><line x1="12" y1="13" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
+          </div>
+          <div class="goal-title-section">
+            <div class="goal-title">Alcohol</div>
+            <div class="goal-subtitle">≤ 17 units/week</div>
+          </div>
+          <div class="goal-edit" onclick="openGoalEdit('alcohol')">Edit</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);font-weight:600;margin-bottom:6px;">
+          <span>1 Apr 2026</span><span>→</span><span>31 Dec 2026</span>
+        </div>
+        <div class="goal-progress-section">
+          <div class="goal-numbers">
+            <span class="goal-current">11.3 units</span>
+            <span class="goal-arrow">→</span>
+            <span class="goal-target">≤ 17 units</span>
+          </div>
+          <div style="display:flex;gap:2px;margin:8px 0;">
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-green);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-green);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--danger);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--accent-amber);opacity:0.4;"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+            <div style="flex:1;height:6px;border-radius:3px;background:var(--bg-tertiary);"></div>
+          </div>
+          <div class="goal-meta">
+            <span style="color:var(--accent-amber);font-weight:600;">2/4 weeks under limit</span>
+            <span>35 weeks remaining</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Weight Goal -->
-      <div class="glass-card goal-card">
+      <div class="glass-card goal-card" style="position:relative;">
+        <div class="goal-edit-overlay" id="edit-weight">
+          <h3>Edit Weight</h3>
+          <div class="goal-edit-row"><span class="goal-edit-label">Target weight</span><div class="goal-edit-stepper"><button>−</button><span>93.0 kg</span><button>+</button></div></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">Start date</span><button class="goal-edit-date">1 Jan 2026</button></div>
+          <div class="goal-edit-row"><span class="goal-edit-label">End date</span><button class="goal-edit-date">13 Jul 2026</button></div>
+          <div class="goal-edit-actions"><button class="goal-edit-cancel" onclick="closeGoalEdit('weight')">Cancel</button><button class="goal-edit-save" onclick="closeGoalEdit('weight')">Save</button></div>
+        </div>
         <div class="goal-header">
           <div class="goal-icon" style="background:var(--tint-purple);">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v17"/><path d="M5 12h14"/><circle cx="12" cy="12" r="9"/></svg>
           </div>
           <div class="goal-title-section">
             <div class="goal-title">Weight</div>
-            <div class="goal-subtitle">93.0 kg by July 2026</div>
+            <div class="goal-subtitle">Target: 93.0 kg</div>
           </div>
-          <div class="goal-edit" onclick="this.style.opacity=0.5">Edit</div>
+          <div class="goal-edit" onclick="openGoalEdit('weight')">Edit</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);font-weight:600;margin-bottom:6px;">
+          <span>1 Jan 2026</span><span>→</span><span>13 Jul 2026</span>
         </div>
         <div class="goal-progress-section">
           <div class="goal-numbers">
@@ -1768,7 +1970,7 @@ body {
             <div class="goal-bar-fill" style="width:77.5%;background:linear-gradient(90deg, var(--accent-purple), #7C6FE3);"></div>
           </div>
           <div class="goal-meta">
-            <span>Started at 97.0 kg</span>
+            <span>Started at 97.0 kg · week 17/28</span>
             <span style="color:var(--accent-purple);font-weight:600;">3.1 kg to go</span>
           </div>
         </div>
@@ -1784,49 +1986,6 @@ body {
         </div>
       </div>
 
-      <!-- VO2 Max Goal -->
-      <div class="glass-card goal-card">
-        <div class="goal-header">
-          <div class="goal-icon" style="background:var(--tint-blue);">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          </div>
-          <div class="goal-title-section">
-            <div class="goal-title">VO2 Max</div>
-            <div class="goal-subtitle">Target: 60 ml/kg/min</div>
-          </div>
-          <div class="goal-edit" onclick="this.style.opacity=0.5">Edit</div>
-        </div>
-        <div class="goal-progress-section">
-          <div class="goal-numbers">
-            <span class="goal-current">55.6</span>
-            <span class="goal-arrow">→</span>
-            <span class="goal-target">60.0</span>
-          </div>
-          <div class="goal-bar-track">
-            <div class="goal-bar-fill" style="width:63%;background:linear-gradient(90deg, var(--accent-blue), #7C6FE3);"></div>
-          </div>
-          <div class="goal-meta">
-            <span>Started at 52.0</span>
-            <span style="color:var(--accent-blue);font-weight:600;">4.4 to go</span>
-          </div>
-        </div>
-        <div class="goal-chart-mini">
-          <svg viewBox="0 0 280 60" preserveAspectRatio="none" style="width:100%;height:50px;">
-            <defs><linearGradient id="vGoalGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5B4CDB" stop-opacity="0.15"/><stop offset="100%" stop-color="#5B4CDB" stop-opacity="0.01"/></linearGradient></defs>
-            <line x1="0" y1="10" x2="280" y2="10" stroke="#5B4CDB" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.3"/>
-            <text x="270" y="8" font-size="7" fill="#5B4CDB" font-family="-apple-system" text-anchor="end">60</text>
-            <path d="M20,50 L80,44 L140,36 L200,30 L260,22 L260,60 L20,60 Z" fill="url(#vGoalGrad)"/>
-            <polyline points="20,50 80,44 140,36 200,30 260,22" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="260" cy="22" r="3.5" fill="#5B4CDB" stroke="#FFF" stroke-width="1.5"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Add Goal Button -->
-      <div class="add-goal-btn" onclick="this.style.opacity=0.6">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B4CDB" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span>Add New Goal</span>
-      </div>
     </div>
 
   </div>
@@ -1902,6 +2061,13 @@ function goToDay(dayLabel) {
 }
 
 var activeWeekNum = null;
+function openGoalEdit(goalId) {
+  document.getElementById('edit-' + goalId).classList.add('open');
+}
+function closeGoalEdit(goalId) {
+  document.getElementById('edit-' + goalId).classList.remove('open');
+}
+
 function toggleWeekDetail(weekNum) {
   var panel = document.getElementById('month-week-detail');
   var title = document.getElementById('week-detail-title');
