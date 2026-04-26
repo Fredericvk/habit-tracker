@@ -7,14 +7,21 @@ struct HabitTrackerApp: App {
 
     init() {
         do {
+            let config = ModelConfiguration(for:
+                Goal.self, WorkoutEntry.self, MealEntry.self,
+                WeightEntry.self, DrinkEntry.self, Badge.self
+            )
             container = try ModelContainer(for:
                 Goal.self,
                 WorkoutEntry.self,
                 MealEntry.self,
                 WeightEntry.self,
                 DrinkEntry.self,
-                Badge.self
+                Badge.self,
+                configurations: config
             )
+            // Seed goals synchronously before first frame (fast: single fetchCount check)
+            DataSeeder.seedDefaultGoals(context: container.mainContext)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
@@ -23,9 +30,6 @@ struct HabitTrackerApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
-                .onAppear {
-                    DataSeeder.seedDefaultGoals(context: container.mainContext)
-                }
         }
         .modelContainer(container)
     }

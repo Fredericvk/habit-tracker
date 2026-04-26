@@ -12,8 +12,8 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            if let store {
-                Group {
+            Group {
+                if let store {
                     switch selectedTab {
                     case .log:
                         LogScreen(store: store)
@@ -24,14 +24,16 @@ struct MainTabView: View {
                     case .settings:
                         SettingsScreen()
                     }
+                } else {
+                    Color.theme.background
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             tabBar
         }
         .background(Color.theme.background)
-        .onAppear {
+        .task {
             if store == nil {
                 store = HabitStore(modelContext: modelContext)
             }
