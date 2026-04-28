@@ -938,6 +938,244 @@ html, body {
 .gap-8 { gap: 8px; }
 .hidden { display: none !important; }
 
+/* ═══════════════════════════════════════════════
+   WEEK VIEW – Redesigned Cards
+   ═══════════════════════════════════════════════ */
+
+/* Shared card header */
+.wk-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.wk-card-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.wk-icon-cal { background: var(--tint-amber); }
+.wk-icon-ex  { background: var(--tint-green); }
+.wk-icon-sn  { background: var(--tint-amber); }
+.wk-icon-al  { background: var(--tint-purple); }
+.wk-icon-wt  { background: var(--tint-blue); }
+.wk-card-info { flex: 1; min-width: 0; }
+.wk-card-title { font-weight: 700; font-size: 16px; color: var(--text-primary); }
+.wk-card-stat { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.wk-card-stat strong { color: var(--text-primary); font-weight: 700; }
+
+/* ── Calories bar chart ── */
+.wk-cal-card { position: relative; overflow: hidden; }
+.wk-bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 0 4px; position: relative; }
+.wk-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
+.wk-bar-val { font-size: 10px; font-weight: 600; color: var(--text-secondary); min-height: 14px; }
+.wk-bar-track { flex: 1; width: 100%; border-radius: 6px; background: var(--bg-secondary); position: relative; overflow: hidden; display: flex; align-items: flex-end; }
+.wk-bar-fill { width: 100%; border-radius: 6px; transition: height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.wk-bar-label { font-size: 11px; font-weight: 600; color: var(--text-tertiary); }
+
+/* ── Exercise log ── */
+.wk-ex-grid { display: flex; flex-direction: column; gap: 4px; }
+.wk-ex-day { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--bg-secondary); transition: background var(--transition); }
+.wk-ex-day.wk-ex-active { background: var(--tint-green); }
+.wk-ex-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); width: 18px; text-align: center; flex-shrink: 0; }
+.wk-ex-rest { font-size: 12px; color: var(--text-tertiary); }
+.wk-ex-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.wk-ex-entry { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+
+/* ── No Snacking grid ── */
+.wk-sn-grid { display: flex; gap: 6px; }
+.wk-sn-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 12px; background: var(--bg-secondary); transition: all var(--transition); min-width: 0; }
+.wk-sn-day.wk-sn-clean { background: var(--tint-green); }
+.wk-sn-day.wk-sn-fail { background: #FEE2E2; }
+.wk-sn-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.wk-sn-icon { font-size: 16px; font-weight: 700; }
+.wk-sn-clean .wk-sn-icon { color: var(--accent-green); }
+.wk-sn-fail .wk-sn-icon { color: var(--danger); }
+.wk-sn-empty .wk-sn-icon { color: var(--text-tertiary); }
+.wk-sn-items { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+.wk-sn-item { font-size: 9px; color: var(--text-secondary); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Alcohol grid ── */
+.wk-al-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.wk-al-chip { font-size: 12px; font-weight: 500; background: var(--tint-purple); color: var(--accent-purple); padding: 3px 10px; border-radius: 20px; }
+.wk-al-grid { display: flex; gap: 6px; }
+.wk-al-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px; border-radius: 12px; min-width: 0; transition: all var(--transition); }
+.wk-al-free { background: var(--tint-green); }
+.wk-al-drank { background: var(--tint-purple); }
+.wk-al-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.wk-al-icon { font-size: 14px; color: var(--accent-green); font-weight: 700; }
+.wk-al-icons { font-size: 14px; line-height: 1; }
+.wk-al-units { font-size: 9px; font-weight: 600; color: var(--accent-purple); }
+
+/* ── Weight sparkline ── */
+.wk-wt-spark { width: 100%; height: auto; display: block; }
+.wk-wt-dot-label { font-size: 8px; fill: var(--text-secondary); font-weight: 600; }
+.wk-wt-trend { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; margin-left: 8px; padding: 2px 8px; border-radius: 8px; }
+.wk-wt-down { color: var(--accent-green); background: var(--tint-green); }
+.wk-wt-up { color: var(--danger); background: #FEE2E2; }
+
+
+/* ═══════════════════════════════════════════════
+   DAY VIEW – Redesigned Cards
+   ═══════════════════════════════════════════════ */
+
+/* ── Daily summary badges ── */
+.dy-badge-row { display: flex; gap: 8px; padding: 4px 0 8px; }
+.dy-badge { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; background: var(--card-bg); box-shadow: 0 1px 4px rgba(0,0,0,0.05); transition: all var(--transition); }
+.dy-badge-icon { font-size: 16px; font-weight: 700; }
+.dy-badge-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; }
+.dy-badge-ok .dy-badge-icon { color: var(--accent-green); }
+.dy-badge-ok { border-bottom: 2px solid var(--accent-green); }
+.dy-badge-fail .dy-badge-icon { color: var(--danger); }
+.dy-badge-fail { border-bottom: 2px solid var(--danger); }
+.dy-badge-na .dy-badge-icon { color: var(--text-tertiary); }
+
+/* ── Calories donut card ── */
+.dy-cal-card { }
+.dy-cal-hero { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; }
+.dy-donut-wrap { position: relative; flex-shrink: 0; }
+.dy-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.dy-donut-number { font-size: 24px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.dy-donut-unit { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
+.dy-donut-ring { transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.dy-cal-meta { display: flex; flex-direction: column; gap: 4px; }
+.dy-cal-target { font-size: 13px; color: var(--text-secondary); }
+.dy-cal-remaining { font-size: 15px; font-weight: 700; color: var(--accent-green); }
+.dy-cal-remaining.dy-over { color: var(--danger); }
+
+/* Meal groups */
+.dy-meals-list { border-top: 1px solid var(--separator); padding-top: 12px; }
+.dy-meal-group { margin-bottom: 12px; }
+.dy-meal-group:last-child { margin-bottom: 0; }
+.dy-meal-type { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+.dy-meal-type-icon { font-size: 16px; }
+.dy-meal-type-kcal { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--text-tertiary); }
+.dy-meal-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: var(--bg-secondary); margin-bottom: 4px; }
+.dy-meal-desc { flex: 1; font-size: 13px; color: var(--text-primary); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dy-meal-kcal { font-size: 12px; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.dy-meal-kcal::after { content: ' kcal'; font-weight: 400; color: var(--text-tertiary); }
+
+/* ── Exercise card ── */
+.dy-ex-list { display: flex; flex-direction: column; gap: 8px; }
+.dy-ex-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: var(--tint-green); }
+.dy-ex-icon { font-size: 22px; flex-shrink: 0; }
+.dy-ex-detail { display: flex; flex-direction: column; }
+.dy-ex-type { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.dy-ex-dur { font-size: 12px; color: var(--text-secondary); }
+.dy-ex-empty { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 12px; background: var(--bg-secondary); }
+.dy-ex-empty-icon { font-size: 28px; }
+.dy-ex-empty-msg { font-size: 13px; color: var(--text-secondary); }
+
+/* ── Snacking card ── */
+.dy-sn-card { }
+.dy-sn-card.dy-sn-clean { background: linear-gradient(135deg, #D1FAE5 0%, #FFFFFF 40%); }
+.dy-sn-status { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
+.dy-sn-big-icon { font-size: 32px; flex-shrink: 0; }
+.dy-sn-big-text { display: flex; flex-direction: column; }
+.dy-sn-headline { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.dy-sn-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.dy-sn-list { border-top: 1px solid var(--separator); padding-top: 10px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.dy-sn-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: #FEE2E2; }
+.dy-sn-item-icon { font-size: 16px; flex-shrink: 0; }
+.dy-sn-item-desc { flex: 1; font-size: 13px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dy-sn-item-kcal { font-size: 12px; font-weight: 600; color: var(--danger); flex-shrink: 0; }
+
+/* ── Alcohol card ── */
+.dy-al-card { }
+.dy-al-card.dy-al-free { background: linear-gradient(135deg, #D1FAE5 0%, #FFFFFF 40%); }
+.dy-al-status { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
+.dy-al-big-icon { font-size: 32px; flex-shrink: 0; }
+.dy-al-big-text { display: flex; flex-direction: column; }
+.dy-al-headline { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.dy-al-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.dy-al-budget { margin-bottom: 12px; }
+.dy-al-budget-bar { height: 6px; border-radius: 3px; background: var(--bg-secondary); overflow: hidden; margin-bottom: 4px; }
+.dy-al-budget-fill { height: 100%; border-radius: 3px; background: var(--accent-purple); transition: width 0.5s ease; }
+.dy-al-budget-label { font-size: 11px; color: var(--text-tertiary); }
+.dy-al-list { display: flex; flex-direction: column; gap: 6px; }
+.dy-al-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--tint-purple); }
+.dy-al-item-icon { font-size: 18px; flex-shrink: 0; }
+.dy-al-item-type { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; }
+.dy-al-item-qty { font-size: 12px; color: var(--text-secondary); }
+.dy-al-item-units { font-size: 12px; font-weight: 600; color: var(--accent-purple); }
+.dy-al-item-kcal { font-size: 11px; color: var(--text-tertiary); }
+
+/* ── Weight card ── */
+.dy-wt-card { }
+.dy-wt-hero { display: flex; align-items: baseline; gap: 16px; margin-bottom: 12px; }
+.dy-wt-big { font-size: 36px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.dy-wt-unit { font-size: 16px; font-weight: 500; color: var(--text-tertiary); margin-left: 2px; }
+.dy-wt-deltas { display: flex; flex-direction: column; gap: 2px; }
+.dy-wt-delta { font-size: 13px; font-weight: 600; }
+.dy-wt-delta.dy-wt-down { color: var(--accent-green); }
+.dy-wt-delta.dy-wt-up { color: var(--danger); }
+.dy-wt-goal-dist { font-size: 12px; color: var(--text-secondary); }
+.dy-wt-trend { width: 100%; height: auto; display: block; }
+
+
+/* ===== ICON UTILITY ===== */
+.icon { display: inline-flex; vertical-align: middle; flex-shrink: 0; }
+.icon-sm { width: 16px; height: 16px; }
+.icon-lg { width: 24px; height: 24px; }
+
+/* ===== CLICKABLE CALENDAR DAYS ===== */
+.mc-day.clickable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background var(--transition); }
+.mc-day.clickable:active { background: var(--tint-purple); }
+
+/* ===== MONTH STATS GRID ===== */
+.mo-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mo-stat-card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px; border-radius: 14px; background: var(--bg-tertiary); }
+.mo-stat-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.mo-stat-icon.amber  { background: var(--tint-amber); color: var(--accent-amber); }
+.mo-stat-icon.green  { background: var(--tint-green); color: var(--accent-green); }
+.mo-stat-icon.purple { background: var(--tint-purple); color: var(--accent-purple); }
+.mo-stat-icon.blue   { background: var(--tint-blue); color: var(--accent-blue); }
+.mo-stat-icon.danger { background: #FEE2E2; color: var(--danger); }
+.mo-stat-value { font-size: 20px; font-weight: 800; color: var(--text-primary); line-height: 1.1; }
+.mo-stat-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+.mo-stat-sub { font-size: 11px; color: var(--text-tertiary); margin-top: -2px; }
+
+/* ===== SNACK DETERRENT UI ===== */
+.snack-warning-card { background: linear-gradient(135deg, #FEF3C7 0%, #FEE2E2 100%); }
+.snack-warning { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: rgba(239,68,68,0.08); margin-bottom: 16px; }
+.snack-warning-icon { font-size: 24px; }
+.snack-warning-text { font-size: 13px; font-weight: 600; color: var(--danger); }
+.snack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.snack-option { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; border: 1.5px solid #FCA5A5; border-radius: 14px; background: rgba(254,226,226,0.3); cursor: pointer; transition: all 250ms ease; }
+.snack-option:active { background: #FEE2E2; transform: scale(0.97); }
+.snack-option .snack-emoji { font-size: 24px; }
+.snack-option .snack-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.snack-option .snack-cal { font-size: 11px; color: var(--danger); }
+.btn-danger-fill { background: var(--danger); color: #fff; }
+.btn-danger-fill:active { filter: brightness(0.9); }
+
+/* ── Week Calories vertical list ── */
+.wk-cal-list { display: flex; flex-direction: column; gap: 2px; }
+.wk-cal-day { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg-secondary); }
+.wk-cal-day-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); width: 32px; flex-shrink: 0; padding-top: 2px; }
+.wk-cal-day-meals { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.wk-cal-meal { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.wk-cal-meal-desc { font-size: 13px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.wk-cal-meal-kcal { font-size: 11px; color: var(--text-tertiary); flex-shrink: 0; }
+.wk-cal-empty { font-size: 12px; color: var(--text-tertiary); font-style: italic; }
+.wk-cal-day-total { font-size: 14px; font-weight: 700; flex-shrink: 0; min-width: 40px; text-align: right; padding-top: 2px; }
+.wk-cal-day-total.green { color: var(--accent-green); }
+.wk-cal-day-total.amber { color: var(--accent-amber); }
+.wk-cal-day-total.danger { color: var(--danger); }
+.wk-cal-day-total.muted { color: var(--text-tertiary); }
+
+/* ── Month card flip ── */
+.flip-container { perspective: 1200px; }
+.flip-card {
+  transition: transform 0.25s ease-in;
+  transform-style: preserve-3d;
+}
+.flip-card.flipping-out {
+  animation: flip-out 0.25s ease-in forwards;
+}
+.flip-card.flipping-in {
+  animation: flip-in 0.25s ease-out forwards;
+}
+@keyframes flip-out {
+  from { transform: rotateY(0deg); opacity: 1; }
+  to { transform: rotateY(90deg); opacity: 0; }
+}
+@keyframes flip-in {
+  from { transform: rotateY(-90deg); opacity: 0; }
+  to { transform: rotateY(0deg); opacity: 1; }
+}
+
 /* ===== RESPONSIVE (tablet+) ===== */
 @media (min-width: 600px) {
   .app { border-left: 1px solid var(--separator); border-right: 1px solid var(--separator); }

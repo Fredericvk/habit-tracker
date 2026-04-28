@@ -16,6 +16,7 @@ async function boot() {
   setupTabs();
   setupSegmentedControls();
   setupSettings();
+  setupDayNavigation();
 
   // Render default view
   renderOverview();
@@ -90,6 +91,22 @@ function setupSettings() {
       }
     });
   }
+}
+
+// ===== DAY NAVIGATION (from month calendar) =====
+function setupDayNavigation() {
+  document.addEventListener('navigateToDay', (e) => {
+    const date = e.detail?.date;
+    if (!date) return;
+    overviewSeg = 'day';
+    // Update segmented control UI
+    const overviewSC = document.getElementById('overview-seg');
+    if (overviewSC) {
+      overviewSC.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.seg === 'day'));
+    }
+    dayView.setDate(date);
+    switchTab('overview');
+  });
 }
 
 // ===== RENDER HELPERS =====

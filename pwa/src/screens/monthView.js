@@ -1,5 +1,6 @@
 import * as store from '../store.js';
-import { startOfMonth, endOfMonth, startOfWeek, monthYear, weekNumber, weekdayName, isSameDay, daysInWeek, shortDate } from '../dateHelper.js';
+import { startOfMonth, endOfMonth, startOfWeek, startOfDay, monthYear, weekNumber, weekdayName, isSameDay, isWeekday, daysInWeek, shortDate } from '../dateHelper.js';
+import { icon } from '../utils/icons.js';
 
 let currentDate = new Date();
 let container = null;
@@ -16,9 +17,9 @@ export async function render(el) {
   const nav = document.createElement('div');
   nav.className = 'date-nav';
   nav.innerHTML = `
-    <button class="nav-arrow" id="mo-prev">‹</button>
+    <button class="nav-arrow" id="mo-prev">${icon('chevronLeft', 16)}</button>
     <span class="date-label">${monthYear(currentDate)}</span>
-    <button class="nav-arrow" id="mo-next">›</button>
+    <button class="nav-arrow" id="mo-next">${icon('chevronRight', 16)}</button>
   `;
   container.appendChild(nav);
 
@@ -27,10 +28,14 @@ export async function render(el) {
 
   // Build mini calendar
   const calCard = document.createElement('div');
-  calCard.className = 'glass-card';
+  calCard.className = 'glass-card flip-card';
 
-  const meals = await store.mealsInRange(ms, me);
-  const workouts = await store.workoutsInRange(ms, me);
+  const [meals, workouts, drinks, weights] = await Promise.all([
+    store.mealsInRange(ms, me),
+    store.workoutsInRange(ms, me),
+    store.drinksInRange(ms, me),
+    store.weightsInRange(ms, me),
+  ]);
   const today = new Date();
 
   // Calendar header
@@ -63,7 +68,8 @@ export async function render(el) {
       dotColor = hasSnack ? 'amber' : (dayWorkouts.length > 0 ? 'green' : 'green');
     }
 
-    calHTML += `<div class="mc-day ${isToday ? 'today' : ''} ${!inMonth ? 'empty' : ''}">
+    const dateISO = inMonth ? startOfDay(calDate).toISOString() : '';
+    calHTML += `<div class="mc-day ${isToday ? 'today' : ''} ${!inMonth ? 'empty' : 'clickable'}"${dateISO ? ` data-date="${dateISO}"` : ''}>
       ${inMonth ? calDate.getDate() : ''}
       ${dotColor ? `<span class="mc-dot ${dotColor}"></span>` : ''}
     </div>`;
@@ -75,64 +81,151 @@ export async function render(el) {
     if (calDate > me && calDate.getDay() === 1) break;
   }
   calHTML += '</div>';
-  calCard.innerHTML = calHTML;
-  container.appendChild(calCard);
 
-  // Week detail overlay setup
+  const flipContainer = document.createElement('div');
+  flipContainer.className = 'flip-container';
+  calCard.innerHTML = calHTML;
+  flipContainer.appendChild(calCard);
+  container.appendChild(flipContainer);
+
+  // Week detail flip setup
   calCard.querySelectorAll('.mc-wk').forEach(wkEl => {
-    wkEl.onclick = () => openWeekDetail(new Date(wkEl.dataset.wk));
+    wkEl.onclick = () => flipToWeekDetail(new Date(wkEl.dataset.wk), calCard, flipContainer);
   });
 
-  // Month summary
+  // Day tap → navigate to day view
+  calCard.querySelectorAll('.mc-day.clickable').forEach(dayEl => {
+    dayEl.onclick = () => {
+      const dateStr = dayEl.dataset.date;
+      if (dateStr) {
+        document.dispatchEvent(new CustomEvent('navigateToDay', { detail: { date: new Date(dateStr) } }));
+      }
+    };
+  });
+
+  // Rich month stats
+  const totalKcal = meals.reduce((s, m) => s + (m.kcal || 0), 0);
+  const daysInMonth = me.getDate();
+  const avgKcal = daysInMonth > 0 ? Math.round(totalKcal / daysInMonth) : 0;
+
+  const totalWorkoutCount = workouts.length;
+  const workoutDaySet = new Set(workouts.map(w => startOfDay(new Date(w.date)).getTime()));
+  const activeDayCount = workoutDaySet.size;
+
+  const totalAlcUnits = drinks.reduce((s, d) => s + (d.units || 0), 0);
+  const totalAlcKcal = drinks.reduce((s, d) => s + (d.kcal || 0), 0);
+
+  // Snacking score: clean weekdays / total weekdays
+  let cleanWeekdays = 0;
+  let totalWeekdays = 0;
+  const checkDate = new Date(ms);
+  while (checkDate <= me) {
+    if (isWeekday(checkDate)) {
+      totalWeekdays++;
+      const dayMealsCheck = meals.filter(m => isSameDay(new Date(m.date), checkDate));
+      const hasSnack = dayMealsCheck.some(m => m.mealType === 'Snack');
+      if (dayMealsCheck.length > 0 && !hasSnack) cleanWeekdays++;
+    }
+    checkDate.setDate(checkDate.getDate() + 1);
+  }
+  const snackPct = totalWeekdays > 0 ? Math.round((cleanWeekdays / totalWeekdays) * 100) : 0;
+
+  // Weight: start vs end
+  const startWeight = weights.length > 0 ? weights[0].value : null;
+  const endWeight = weights.length > 0 ? weights[weights.length - 1].value : null;
+  const weightDelta = (startWeight != null && endWeight != null) ? endWeight - startWeight : null;
+
+  // Best day (lowest calories with data)
+  const dayCalMap = {};
+  for (const m of meals) {
+    const key = startOfDay(new Date(m.date)).getTime();
+    dayCalMap[key] = (dayCalMap[key] || 0) + (m.kcal || 0);
+  }
+  let bestDayDate = null;
+  let bestDayCal = Infinity;
+  for (const [ts, cal] of Object.entries(dayCalMap)) {
+    if (cal > 0 && cal < bestDayCal) { bestDayCal = cal; bestDayDate = new Date(Number(ts)); }
+  }
+
   const summaryCard = document.createElement('div');
   summaryCard.className = 'glass-card';
-  const totalMeals = meals.length;
-  const totalWorkouts = workouts.length;
   summaryCard.innerHTML = `
     <div class="card-header">
       <div class="card-title">Month Summary</div>
     </div>
-    <div style="display:flex;gap:12px">
-      <div class="meta-item" style="flex:1;padding:12px;border-radius:12px;background:var(--bg-tertiary);text-align:center">
-        <div class="meta-value">${totalMeals}</div>
-        <div class="meta-label">Meals logged</div>
+    <div class="mo-stats-grid">
+      <div class="mo-stat-card">
+        <div class="mo-stat-icon amber">${icon('flame', 18)}</div>
+        <div class="mo-stat-value">${totalKcal.toLocaleString()}</div>
+        <div class="mo-stat-label">Total Calories</div>
+        <div class="mo-stat-sub">~${avgKcal} kcal/day</div>
       </div>
-      <div class="meta-item" style="flex:1;padding:12px;border-radius:12px;background:var(--bg-tertiary);text-align:center">
-        <div class="meta-value">${totalWorkouts}</div>
-        <div class="meta-label">Workouts</div>
+      <div class="mo-stat-card">
+        <div class="mo-stat-icon green">${icon('dumbbell', 18)}</div>
+        <div class="mo-stat-value">${totalWorkoutCount}</div>
+        <div class="mo-stat-label">Workouts</div>
+        <div class="mo-stat-sub">${activeDayCount} active day${activeDayCount !== 1 ? 's' : ''}</div>
       </div>
+      <div class="mo-stat-card">
+        <div class="mo-stat-icon purple">${icon('beer', 18)}</div>
+        <div class="mo-stat-value">${totalAlcUnits.toFixed(1)}</div>
+        <div class="mo-stat-label">Alcohol Units</div>
+        <div class="mo-stat-sub">${totalAlcKcal} kcal</div>
+      </div>
+      <div class="mo-stat-card">
+        <div class="mo-stat-icon amber">${icon('apple', 18)}</div>
+        <div class="mo-stat-value">${snackPct}%</div>
+        <div class="mo-stat-label">Snack-free Score</div>
+        <div class="mo-stat-sub">${cleanWeekdays}/${totalWeekdays} weekdays</div>
+      </div>
+      <div class="mo-stat-card">
+        <div class="mo-stat-icon blue">${icon('scale', 18)}</div>
+        <div class="mo-stat-value">${endWeight != null ? endWeight.toFixed(1) : '—'}</div>
+        <div class="mo-stat-label">Weight (kg)</div>
+        <div class="mo-stat-sub">${weightDelta != null ? `${weightDelta > 0 ? '+' : ''}${weightDelta.toFixed(1)} kg change` : 'No data'}</div>
+      </div>
+      ${bestDayDate ? `<div class="mo-stat-card">
+        <div class="mo-stat-icon green">${icon('trophy', 18)}</div>
+        <div class="mo-stat-value">${bestDayCal}</div>
+        <div class="mo-stat-label">Best Day (kcal)</div>
+        <div class="mo-stat-sub">${shortDate(bestDayDate)}</div>
+      </div>` : `<div class="mo-stat-card">
+        <div class="mo-stat-icon green">${icon('trophy', 18)}</div>
+        <div class="mo-stat-value">—</div>
+        <div class="mo-stat-label">Best Day</div>
+        <div class="mo-stat-sub">No data yet</div>
+      </div>`}
     </div>
   `;
   container.appendChild(summaryCard);
 }
 
-async function openWeekDetail(weekStart) {
-  const existing = document.querySelector('#week-detail-overlay');
-  if (existing) existing.remove();
+async function flipToWeekDetail(weekStart, flipCard, flipContainer) {
+  // Phase 1: flip out
+  flipCard.classList.add('flipping-out');
+  await new Promise(r => setTimeout(r, 250));
 
+  // Load week data
   const days = daysInWeek(weekStart);
-  const meals = await store.mealsInRange(weekStart, days[6]);
-  const workouts = await store.workoutsInRange(weekStart, days[6]);
-  const drinks = await store.drinksInRange(weekStart, days[6]);
+  const [wkMeals, wkWorkouts, wkDrinks] = await Promise.all([
+    store.mealsInRange(weekStart, days[6]),
+    store.workoutsInRange(weekStart, days[6]),
+    store.drinksInRange(weekStart, days[6]),
+  ]);
 
-  const overlay = document.createElement('div');
-  overlay.id = 'week-detail-overlay';
-  overlay.className = 'overlay open';
-
+  // Build week detail grid
   const dayHeaders = days.map(d => `<div class="wg-header">${weekdayName(d)}</div>`).join('');
-
   const rows = ['Calories', 'Exercise', 'Snacking', 'Alcohol'];
   let gridHTML = `<div class="week-grid"><div class="wg-header"></div>${dayHeaders}`;
 
   for (const row of rows) {
     gridHTML += `<div class="wg-label">${row}</div>`;
     for (const d of days) {
-      const dayMeals = meals.filter(m => isSameDay(new Date(m.date), d));
-      const dayW = workouts.filter(w => isSameDay(new Date(w.date), d));
-      const dayD = drinks.filter(dr => isSameDay(new Date(dr.date), d));
+      const dayMeals = wkMeals.filter(m => isSameDay(new Date(m.date), d));
+      const dayW = wkWorkouts.filter(w => isSameDay(new Date(w.date), d));
+      const dayD = wkDrinks.filter(dr => isSameDay(new Date(dr.date), d));
 
-      let cls = 'muted';
-      let val = '—';
+      let cls = 'muted', val = '—';
       if (row === 'Calories') {
         const kcal = dayMeals.reduce((s, m) => s + (m.kcal || 0), 0);
         if (kcal > 0) { val = Math.round(kcal / 100) + ''; cls = kcal <= 2300 ? 'green' : 'red'; }
@@ -150,19 +243,52 @@ async function openWeekDetail(weekStart) {
   }
   gridHTML += '</div>';
 
-  overlay.innerHTML = `
-    <div class="overlay-panel">
-      <header class="overlay-header">
-        <h2>W${weekNumber(weekStart)} · ${shortDate(weekStart)}</h2>
-        <button class="icon-btn" id="close-wk-detail" aria-label="Close">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </header>
-      <div class="overlay-body">${gridHTML}</div>
+  // Swap content
+  // Store original HTML so we can restore it
+  flipContainer._calendarHTML = flipCard.innerHTML;
+
+  flipCard.innerHTML = `
+    <div style="padding: 16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <button class="nav-arrow" id="flip-back">${icon('chevronLeft', 16)}</button>
+        <h3 style="font-size:16px;font-weight:700;flex:1">W${weekNumber(weekStart)} · ${shortDate(weekStart)}</h3>
+      </div>
+      ${gridHTML}
     </div>
   `;
 
-  document.querySelector('.app').appendChild(overlay);
-  overlay.querySelector('#close-wk-detail').onclick = () => overlay.remove();
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  flipCard.classList.remove('flipping-out');
+  flipCard.classList.add('flipping-in');
+
+  // Back button
+  flipCard.querySelector('#flip-back').onclick = () => flipBackToCalendar(flipCard, flipContainer);
+
+  await new Promise(r => setTimeout(r, 250));
+  flipCard.classList.remove('flipping-in');
+}
+
+function flipBackToCalendar(flipCard, flipContainer) {
+  flipCard.classList.add('flipping-out');
+  setTimeout(() => {
+    flipCard.innerHTML = flipContainer._calendarHTML;
+    flipCard.classList.remove('flipping-out');
+    flipCard.classList.add('flipping-in');
+
+    // Re-attach week click handlers
+    flipCard.querySelectorAll('.mc-wk').forEach(wkEl => {
+      wkEl.onclick = () => flipToWeekDetail(new Date(wkEl.dataset.wk), flipCard, flipContainer);
+    });
+
+    // Re-attach day click handlers
+    flipCard.querySelectorAll('.mc-day.clickable').forEach(dayEl => {
+      dayEl.onclick = () => {
+        const dateStr = dayEl.dataset.date;
+        if (dateStr) {
+          document.dispatchEvent(new CustomEvent('navigateToDay', { detail: { date: new Date(dateStr) } }));
+        }
+      };
+    });
+
+    setTimeout(() => flipCard.classList.remove('flipping-in'), 250);
+  }, 250);
 }

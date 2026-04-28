@@ -1,6 +1,7 @@
 import * as store from '../store.js';
 import { startOfDay, formatDate, shortDate } from '../dateHelper.js';
 import { escapeHTML } from '../utils/sanitize.js';
+import { icon } from '../utils/icons.js';
 
 let container = null;
 let currentDate = new Date();
@@ -32,14 +33,14 @@ export async function render(el, segment = 'food') {
 
 async function renderFood() {
   const card = document.createElement('div');
-  card.className = 'glass-card';
+  card.className = foodMode === 'Snack' ? 'glass-card snack-warning-card' : 'glass-card';
 
   // Date nav
   const dateNav = `
     <div class="date-nav">
-      <button class="nav-arrow" id="food-prev">‹</button>
+      <button class="nav-arrow" id="food-prev">${icon('chevronLeft', 16)}</button>
       <span class="date-label">${formatDate(currentDate)}</span>
-      <button class="nav-arrow" id="food-next">›</button>
+      <button class="nav-arrow" id="food-next">${icon('chevronRight', 16)}</button>
     </div>`;
 
   // Toggle Meal/Snack
@@ -56,20 +57,60 @@ async function renderFood() {
       ${mealTypes.map(t => `<button class="meal-type-btn ${mealType === t ? 'selected' : ''}" data-type="${t}">${t}</button>`).join('')}
     </div>` : '';
 
-  card.innerHTML = `
-    ${dateNav}
-    ${toggle}
-    ${typeSelector}
-    <div class="input-group">
-      <label>Description</label>
-      <input class="input-field" id="food-desc" placeholder="e.g. Chicken salad" />
-    </div>
-    <div class="input-group">
-      <label>Calories (kcal)</label>
-      <input class="input-field" id="food-kcal" type="number" placeholder="0" />
-    </div>
-    <button class="btn btn-primary btn-block" id="food-save">Save</button>
-  `;
+  const SNACK_DEFAULTS = [
+    { emoji: '🍪', name: 'Cookie', kcal: 150 },
+    { emoji: '🍫', name: 'Chocolate', kcal: 250 },
+    { emoji: '🥜', name: 'Nuts', kcal: 180 },
+    { emoji: '🥨', name: 'Crisps', kcal: 200 },
+    { emoji: '🍬', name: 'Candy', kcal: 120 },
+    { emoji: '✏️', name: 'Custom', kcal: 0 },
+  ];
+
+  if (foodMode === 'Snack') {
+    const snackGrid = SNACK_DEFAULTS.map((s, i) =>
+      `<div class="snack-option" data-snack-idx="${i}">
+        <span class="snack-emoji">${s.emoji}</span>
+        <span class="snack-name">${s.name}</span>
+        ${s.kcal > 0 ? `<span class="snack-cal">${s.kcal} kcal</span>` : '<span class="snack-cal">manual</span>'}
+      </div>`
+    ).join('');
+
+    card.innerHTML = `
+      ${dateNav}
+      ${toggle}
+      <div class="snack-warning">
+        <span class="snack-warning-icon">${icon('alertTriangle', 22)}</span>
+        <span class="snack-warning-text">Are you sure? Every snack breaks your streak.</span>
+      </div>
+      <div class="snack-grid">${snackGrid}</div>
+      <div id="snack-custom-fields" class="hidden">
+        <div class="input-group">
+          <label>Description</label>
+          <input class="input-field" id="food-desc" placeholder="e.g. Trail mix" />
+        </div>
+        <div class="input-group">
+          <label>Calories (kcal)</label>
+          <input class="input-field" id="food-kcal" type="number" placeholder="0" />
+        </div>
+        <button class="btn btn-danger-fill btn-block" id="food-save">Save Snack</button>
+      </div>
+    `;
+  } else {
+    card.innerHTML = `
+      ${dateNav}
+      ${toggle}
+      ${typeSelector}
+      <div class="input-group">
+        <label>Description</label>
+        <input class="input-field" id="food-desc" placeholder="e.g. Chicken salad" />
+      </div>
+      <div class="input-group">
+        <label>Calories (kcal)</label>
+        <input class="input-field" id="food-kcal" type="number" placeholder="0" />
+      </div>
+      <button class="btn btn-primary btn-block" id="food-save">Save</button>
+    `;
+  }
   container.appendChild(card);
 
   // Recent meals
@@ -108,19 +149,47 @@ async function renderFood() {
     btn.onclick = () => { mealType = btn.dataset.type; render(container, 'food'); };
   });
 
-  card.querySelector('#food-save').onclick = async () => {
-    const desc = card.querySelector('#food-desc').value.trim().slice(0, 500);
-    const kcal = Math.max(0, Math.min(99999, parseInt(card.querySelector('#food-kcal').value) || 0));
-    if (!desc && kcal === 0) return;
-    await store.addMeal({
-      date: currentDate,
-      mealType: foodMode === 'Snack' ? 'Snack' : mealType,
-      description: desc || (foodMode === 'Snack' ? 'Snack' : mealType),
-      kcal
+  // Snack mode handlers
+  if (foodMode === 'Snack') {
+    card.querySelectorAll('.snack-option').forEach(opt => {
+      opt.onclick = async () => {
+        const idx = Number(opt.dataset.snackIdx);
+        const snack = SNACK_DEFAULTS[idx];
+        if (snack.name === 'Custom') {
+          // Show custom fields
+          card.querySelector('#snack-custom-fields').classList.remove('hidden');
+          card.querySelector('.snack-grid').classList.add('hidden');
+          return;
+        }
+        // Quick save preset snack
+        await store.addMeal({
+          date: currentDate,
+          mealType: 'Snack',
+          description: snack.name,
+          kcal: snack.kcal
+        });
+        showToast('✓ Snack logged');
+        render(container, 'food');
+      };
     });
-    showToast('✓ Saved');
-    render(container, 'food');
-  };
+  }
+
+  const saveBtn = card.querySelector('#food-save');
+  if (saveBtn) {
+    saveBtn.onclick = async () => {
+      const desc = card.querySelector('#food-desc').value.trim().slice(0, 500);
+      const kcal = Math.max(0, Math.min(99999, parseInt(card.querySelector('#food-kcal').value) || 0));
+      if (!desc && kcal === 0) return;
+      await store.addMeal({
+        date: currentDate,
+        mealType: foodMode === 'Snack' ? 'Snack' : mealType,
+        description: desc || (foodMode === 'Snack' ? 'Snack' : mealType),
+        kcal
+      });
+      showToast('✓ Saved');
+      render(container, 'food');
+    };
+  }
 }
 
 async function renderDrink() {
