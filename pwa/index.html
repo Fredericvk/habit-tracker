@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.azurestaticapps.net https://*.cosmos.azure.com https://login.microsoftonline.com;" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#5B4CDB" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Habits" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icons/icon-192.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <title>Habit Tracker</title>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ========== OVERVIEW SCREEN ========== -->
+    <div class="screen active" id="screen-overview">
+      <header class="screen-header">
+        <h1 class="header-title">Overview</h1>
+        <button class="icon-btn settings-btn" id="btn-settings" aria-label="Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </header>
+
+      <div class="segmented-control" id="overview-seg">
+        <button class="seg-btn" data-seg="day">Day</button>
+        <button class="seg-btn active" data-seg="week">Week</button>
+        <button class="seg-btn" data-seg="month">Month</button>
+      </div>
+
+      <div class="content-area" id="overview-content">
+        <!-- Day/Week/Month views rendered here by JS -->
+      </div>
+    </div>
+
+    <!-- ========== LOG SCREEN ========== -->
+    <div class="screen" id="screen-log">
+      <header class="screen-header">
+        <h1 class="header-title">Log</h1>
+      </header>
+
+      <div class="segmented-control" id="log-seg">
+        <button class="seg-btn active" data-seg="food">Food</button>
+        <button class="seg-btn" data-seg="drink">Drink</button>
+        <button class="seg-btn" data-seg="weight">Weight</button>
+      </div>
+
+      <div class="content-area" id="log-content">
+        <!-- Food/Drink/Weight log forms rendered here by JS -->
+      </div>
+    </div>
+
+    <!-- ========== GOALS SCREEN ========== -->
+    <div class="screen" id="screen-goals">
+      <header class="screen-header">
+        <h1 class="header-title">Goals</h1>
+      </header>
+
+      <div class="content-area" id="goals-content">
+        <!-- Goal cards rendered here by JS -->
+      </div>
+    </div>
+
+    <!-- ========== TAB BAR ========== -->
+    <nav class="tab-bar">
+      <button class="tab-btn" data-tab="log" id="tab-log">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span>Log</span>
+      </button>
+      <button class="tab-btn fab active" data-tab="overview" id="tab-overview">
+        <div class="fab-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </div>
+        <span>Overview</span>
+      </button>
+      <button class="tab-btn" data-tab="goals" id="tab-goals">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        <span>Goals</span>
+      </button>
+    </nav>
+
+    <!-- ========== SETTINGS OVERLAY ========== -->
+    <div class="overlay" id="settings-overlay">
+      <div class="overlay-panel">
+        <header class="overlay-header">
+          <h2>Settings</h2>
+          <button class="icon-btn" id="btn-close-settings" aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </header>
+        <div class="overlay-body settings-body">
+          <div class="settings-group">
+            <h3>Sync</h3>
+            <div class="settings-row">
+              <span>Cross-device sync</span>
+              <span class="badge badge-muted">Coming soon</span>
+            </div>
+          </div>
+          <div class="settings-group">
+            <h3>Data</h3>
+            <button class="btn btn-outline btn-danger" id="btn-clear-data">Clear all data</button>
+          </div>
+          <div class="settings-group">
+            <h3>About</h3>
+            <p class="text-tertiary">Habit Tracker v1.0 — Local-first PWA</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TOAST ========== -->
+    <div class="toast" id="toast" aria-live="polite"></div>
+  </div>
+
+  <script type="module" src="/src/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

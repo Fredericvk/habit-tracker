@@ -17,3 +17,10 @@ Pods/
 .build/
 *.swp
 *~
+
+# PWA / Node
+node_modules/
+pwa/dist/
+pwa/.vite/
+.env
+.env.local
