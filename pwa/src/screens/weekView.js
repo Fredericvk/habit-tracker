@@ -6,8 +6,6 @@ import { icon } from '../utils/icons.js';
 let currentDate = new Date();
 let container = null;
 
-export function init() {}
-
 const WORKOUT_ICONS = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', Yoga: '🧘', HIIT: '🔥' };
 const DRINK_ICONS = { Beer: '🍺', Wine: '🍷', Spirit: '🥃', Cocktail: '🍸', Cider: '🍺' };
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -312,12 +310,6 @@ export async function render(el) {
   /* ═══════════════════════════════
      4. ALCOHOL CARD – daily drinks
      ═══════════════════════════════ */
-  const drinkChips = {};
-  for (const d of drinks) { const t = d.drinkType || 'Other'; drinkChips[t] = (drinkChips[t] || 0) + (d.quantity || 1); }
-  const chipsHTML = Object.entries(drinkChips).map(([t, q]) =>
-    `<span class="wk-al-chip">${DRINK_ICONS[t] || '🍹'} ${escapeHTML(t)} ×${q}</span>`
-  ).join('');
-
   const alDays = days.map(d => {
     const dayIdx = days.indexOf(d);
     const isFuture = startOfDay(d) > startOfDay(today);

@@ -15,8 +15,6 @@ let weightValue = 90.0;
 let workoutType = 'Run';
 let workoutDuration = 30;
 
-export function init() {}
-
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;

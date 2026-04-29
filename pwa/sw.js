@@ -1,14 +1,6 @@
-const CACHE_NAME = 'habit-tracker-v1';
-const SHELL_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
+const CACHE_NAME = 'habit-tracker-v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS))
-  );
   self.skipWaiting();
 });
 
@@ -24,24 +16,35 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Only handle same-origin requests
+  // Only handle same-origin GET requests
   if (url.origin !== self.location.origin) return;
+  if (event.request.method !== 'GET') return;
 
-  // Never cache API calls or auth endpoints — they contain sensitive data
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/.auth/')) return;
+  // Network-first for HTML (always get latest)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
-  // Stale-while-revalidate for app shell
+  // Cache-first for static assets (JS, CSS, fonts, images)
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request).then((response) => {
-        // Only cache successful, same-origin responses
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
         if (response.ok && response.type === 'basic') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => cached);
-      return cached || fetchPromise;
+      });
     })
   );
 });

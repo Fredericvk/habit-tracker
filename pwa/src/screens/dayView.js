@@ -6,14 +6,11 @@ import { icon } from '../utils/icons.js';
 let currentDate = new Date();
 let container = null;
 
-export function init() {}
-
 export function setDate(date) {
   currentDate = new Date(date);
 }
 
 const MEAL_ICONS = { Breakfast: '🌅', Lunch: '☀️', Dinner: '🌙', Snack: '🍿', Other: '🍽️' };
-const MEAL_COLORS = { Breakfast: 'var(--accent-amber)', Lunch: 'var(--accent-blue)', Dinner: 'var(--accent-purple)', Snack: 'var(--danger)', Other: 'var(--text-tertiary)' };
 const WORKOUT_ICONS = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', Yoga: '🧘', HIIT: '🔥' };
 const DRINK_ICONS = { Beer: '🍺', Wine: '🍷', Spirit: '🥃', Cocktail: '🍸', Cider: '🍺' };
 
@@ -241,7 +238,6 @@ export async function render(el) {
 
   // Snack status card
   const snClean = !hasSnack && meals.length > 0;
-  const snNA = meals.length === 0;
   const snCard = document.createElement('div');
   snCard.className = `glass-card dy-half-card ${!hasSnack ? 'dy-half-ok' : 'dy-half-warn'}`;
   if (snClean) {

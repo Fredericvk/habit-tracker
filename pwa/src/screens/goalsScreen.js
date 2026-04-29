@@ -4,8 +4,6 @@ import { escapeHTML } from '../utils/sanitize.js';
 
 let container = null;
 
-export function init() {}
-
 export async function render(el) {
   container = el;
   container.innerHTML = '';

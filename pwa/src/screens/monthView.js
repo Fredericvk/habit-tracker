@@ -16,8 +16,6 @@ function snackEmoji(desc) {
   return '🍿';
 }
 
-export function init() {}
-
 export async function render(el) {
   container = el;
   container.innerHTML = '';
