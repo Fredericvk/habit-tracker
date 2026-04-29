@@ -189,6 +189,7 @@ html, body {
 }
 .tab-btn.active { color: var(--accent-purple); }
 .tab-btn svg { stroke: currentColor; }
+.tab-btn.fab .fab-circle svg { stroke: #fff; }
 .tab-btn.fab { position: relative; }
 .fab-circle {
   width: 56px;
@@ -1131,6 +1132,8 @@ html, body {
 .dy-half-icon { font-size: 28px; margin-bottom: 4px; }
 .dy-half-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
 .dy-half-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.dy-snack-confirm { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-tertiary); margin-top: 6px; cursor: pointer; }
+.dy-snack-confirm input { width: 16px; height: 16px; accent-color: var(--accent-green); }
 .dy-half-ok { background: linear-gradient(135deg, #D1FAE5 0%, #FFFFFF 40%); }
 .dy-half-ok-alc { background: linear-gradient(135deg, #FEF3C7 0%, #FFFFFF 40%); }
 .dy-half-warn { background: linear-gradient(135deg, #FEE2E2 0%, #FFFFFF 40%); }

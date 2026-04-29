@@ -76,7 +76,7 @@ export async function render(el) {
   const badges = [
     { label: 'Calories', ok: totalCal > 0 && totalCal <= calTarget, na: totalCal === 0 },
     { label: 'Exercise', ok: workouts.length > 0, na: false },
-    { label: 'No Snacks', ok: !hasSnack && meals.length > 0, na: meals.length === 0 },
+    { label: 'No Snacks', ok: !hasSnack, na: false },
     { label: 'No Alcohol', ok: totalUnits === 0, na: false },
   ];
   const badgesHTML = badges.map(b => {
@@ -243,13 +243,13 @@ export async function render(el) {
   const snClean = !hasSnack && meals.length > 0;
   const snNA = meals.length === 0;
   const snCard = document.createElement('div');
-  snCard.className = `glass-card dy-half-card ${snClean ? 'dy-half-ok' : hasSnack ? 'dy-half-warn' : ''}`;
+  snCard.className = `glass-card dy-half-card ${!hasSnack ? 'dy-half-ok' : 'dy-half-warn'}`;
   if (snClean) {
     snCard.innerHTML = `
       <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">🍫</span><span class="dy-half-head-title">Snacks</span></div>
       <span class="dy-half-icon">✨</span>
       <span class="dy-half-title">No Snacks</span>
-      <span class="dy-half-sub">Clean day!</span>`;
+      <span class="dy-half-sub">⭐ Clean day! ⭐</span>`;
   } else if (hasSnack) {
     snCard.innerHTML = `
       <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">🍫</span><span class="dy-half-head-title">Snacks</span></div>
@@ -259,9 +259,10 @@ export async function render(el) {
   } else {
     snCard.innerHTML = `
       <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">🍫</span><span class="dy-half-head-title">Snacks</span></div>
-      <span class="dy-half-icon">📝</span>
-      <span class="dy-half-title">Snacks</span>
-      <span class="dy-half-sub">No data yet</span>`;
+      <span class="dy-half-icon">✨</span>
+      <span class="dy-half-title">No Snacks</span>
+      <span class="dy-half-sub">⭐ Clean day! ⭐</span>
+      <label class="dy-snack-confirm"><input type="checkbox" id="dy-snack-check" checked/> Confirm no snacks</label>`;
   }
 
   // Alcohol status card
