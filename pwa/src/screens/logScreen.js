@@ -301,6 +301,8 @@ async function renderWorkout() {
 
   const types = ['Run', 'Gym', 'Walk', 'Cycle', 'Swim', 'Yoga', 'HIIT'];
   const icons = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', Yoga: '🧘', HIIT: '🔥' };
+  const CAL_PER_MIN = { Run: 10, Gym: 8, Walk: 4, Cycle: 9, Swim: 11, Yoga: 4, HIIT: 12 };
+  const estimatedKcal = workoutDuration * (CAL_PER_MIN[workoutType] || 7);
 
   card.innerHTML = `
     <div class="date-nav">
@@ -324,6 +326,14 @@ async function renderWorkout() {
         <button id="wo-plus">+</button>
       </div>
     </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <span style="font-weight:600">Calories burned</span>
+      <div class="stepper">
+        <button id="wo-kcal-minus">−</button>
+        <span class="stepper-value" id="wo-kcal">${estimatedKcal}</span>
+        <button id="wo-kcal-plus">+</button>
+      </div>
+    </div>
     <div class="input-group">
       <label>Notes (optional)</label>
       <input class="input-field" id="wo-notes" placeholder="e.g. Leg day, 5K run" maxlength="200" />
@@ -341,14 +351,29 @@ async function renderWorkout() {
     opt.onclick = () => { workoutType = opt.dataset.type; render(container, 'workout'); };
   });
 
-  // Duration stepper (step 5)
-  card.querySelector('#wo-minus').onclick = () => { workoutDuration = Math.max(5, workoutDuration - 5); card.querySelector('#wo-dur').textContent = workoutDuration; };
-  card.querySelector('#wo-plus').onclick = () => { workoutDuration = Math.min(300, workoutDuration + 5); card.querySelector('#wo-dur').textContent = workoutDuration; };
+  // Duration stepper (step 5) — also updates kcal estimate
+  const updateKcalEstimate = () => {
+    const est = workoutDuration * (CAL_PER_MIN[workoutType] || 7);
+    card.querySelector('#wo-kcal').textContent = est;
+  };
+  card.querySelector('#wo-minus').onclick = () => { workoutDuration = Math.max(5, workoutDuration - 5); card.querySelector('#wo-dur').textContent = workoutDuration; updateKcalEstimate(); };
+  card.querySelector('#wo-plus').onclick = () => { workoutDuration = Math.min(300, workoutDuration + 5); card.querySelector('#wo-dur').textContent = workoutDuration; updateKcalEstimate(); };
+
+  // Kcal stepper (step 25, manual override)
+  card.querySelector('#wo-kcal-minus').onclick = () => {
+    const el = card.querySelector('#wo-kcal');
+    el.textContent = Math.max(0, parseInt(el.textContent) - 25);
+  };
+  card.querySelector('#wo-kcal-plus').onclick = () => {
+    const el = card.querySelector('#wo-kcal');
+    el.textContent = parseInt(el.textContent) + 25;
+  };
 
   // Save
   card.querySelector('#wo-save').onclick = async () => {
     const notes = card.querySelector('#wo-notes').value.trim().slice(0, 200);
-    await store.addWorkout({ date: currentDate, type: workoutType, duration: workoutDuration, notes });
+    const kcal = parseInt(card.querySelector('#wo-kcal').textContent) || 0;
+    await store.addWorkout({ date: currentDate, type: workoutType, duration: workoutDuration, kcal, notes });
     showToast('✓ Workout logged');
     render(container, 'workout');
   };
@@ -362,7 +387,7 @@ async function renderWorkout() {
       <div class="card-title" style="margin-bottom:8px">Today's workouts</div>
       ${recent.map(w => `
         <div class="meal-item">
-          <span class="meal-desc">${icons[w.type] || '🏃'} ${escapeHTML(w.type)}${w.duration ? ' · ' + w.duration + ' min' : ''}${w.notes ? ' — ' + escapeHTML(w.notes) : ''}</span>
+          <span class="meal-desc">${icons[w.type] || '🏃'} ${escapeHTML(w.type)}${w.duration ? ' · ' + w.duration + ' min' : ''}${w.kcal ? ' · ' + w.kcal + ' kcal' : ''}${w.notes ? ' — ' + escapeHTML(w.notes) : ''}</span>
           <button class="delete-btn" data-id="${w.id}">✕</button>
         </div>
       `).join('')}
