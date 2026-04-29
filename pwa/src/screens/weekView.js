@@ -78,7 +78,7 @@ export async function render(el) {
     store.getGoal('weight')
   ]);
 
-  const calTarget = calGoal?.target ?? 2300;
+  const calTarget = calGoal?.dailyTarget ?? calGoal?.target ?? 2300;
   const exTarget = exGoal?.target ?? 7;
   const snTarget = snGoal?.target ?? 5;
   const alTarget = alGoal?.target ?? 17;
