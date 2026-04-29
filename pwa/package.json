@@ -16,6 +16,7 @@
     "vite": "^8.0.10"
   },
   "dependencies": {
-    "dexie": "^4.4.2"
+    "dexie": "^4.4.2",
+    "dexie-cloud-addon": "^4.4.11"
   }
 }

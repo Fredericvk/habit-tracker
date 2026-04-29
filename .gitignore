@@ -24,3 +24,4 @@ pwa/dist/
 pwa/.vite/
 .env
 .env.local
+pwa/dexie-cloud.key
