@@ -1,9 +1,20 @@
 import * as store from '../store.js';
 import { startOfMonth, endOfMonth, startOfWeek, startOfDay, monthYear, weekNumber, weekdayName, isSameDay, isWeekday, daysInWeek, shortDate } from '../dateHelper.js';
 import { icon } from '../utils/icons.js';
+import { escapeHTML } from '../utils/sanitize.js';
 
 let currentDate = new Date();
 let container = null;
+let activeFilter = 'default'; // 'default', 'calories', 'exercise', 'snacks', 'alcohol'
+
+const WORKOUT_ICONS = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', Yoga: '🧘', HIIT: '🔥' };
+const SNACK_EMOJIS = { Cookie: '🍪', Chocolate: '🍫', Nuts: '🥜', Crisps: '🥨', Candy: '🍬' };
+function snackEmoji(desc) {
+  for (const [key, emoji] of Object.entries(SNACK_EMOJIS)) {
+    if (desc && desc.toLowerCase().includes(key.toLowerCase())) return emoji;
+  }
+  return '🍿';
+}
 
 export function init() {}
 
@@ -17,14 +28,33 @@ export async function render(el) {
   const nav = document.createElement('div');
   nav.className = 'date-nav';
   nav.innerHTML = `
-    <button class="nav-arrow" id="mo-prev">${icon('chevronLeft', 16)}</button>
+    <button class="nav-arrow" id="mo-prev">‹</button>
     <span class="date-label">${monthYear(currentDate)}</span>
-    <button class="nav-arrow" id="mo-next">${icon('chevronRight', 16)}</button>
+    <button class="nav-arrow" id="mo-next">›</button>
   `;
   container.appendChild(nav);
 
   nav.querySelector('#mo-prev').onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); render(container); };
   nav.querySelector('#mo-next').onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); render(container); };
+
+  // Filter buttons
+  const filterBar = document.createElement('div');
+  filterBar.className = 'mo-filter-bar';
+  const filters = [
+    { id: 'default', label: 'All' },
+    { id: 'calories', label: '🔥 Cal' },
+    { id: 'exercise', label: '💪 Exercise' },
+    { id: 'snacks', label: '🍫 Snacks' },
+    { id: 'alcohol', label: '🍺 Alcohol' },
+  ];
+  filterBar.innerHTML = filters.map(f =>
+    `<button class="mo-filter-btn ${activeFilter === f.id ? 'active' : ''}" data-filter="${f.id}">${f.label}</button>`
+  ).join('');
+  container.appendChild(filterBar);
+
+  filterBar.querySelectorAll('.mo-filter-btn').forEach(btn => {
+    btn.onclick = () => { activeFilter = btn.dataset.filter; render(container); };
+  });
 
   // Build mini calendar
   const calCard = document.createElement('div');
@@ -59,25 +89,71 @@ export async function render(el) {
 
     const inMonth = calDate.getMonth() === ms.getMonth();
     const isToday = isSameDay(calDate, today);
-    const dayMeals = meals.filter(m => isSameDay(new Date(m.date), calDate));
-    const dayWorkouts = workouts.filter(w => isSameDay(new Date(w.date), calDate));
 
+    let cellContent = '';
     let dotColor = '';
-    if (inMonth && (dayMeals.length > 0 || dayWorkouts.length > 0)) {
-      const hasSnack = dayMeals.some(m => m.mealType === 'Snack');
-      dotColor = hasSnack ? 'amber' : (dayWorkouts.length > 0 ? 'green' : 'green');
+    let cellCls = '';
+
+    if (inMonth) {
+      const dayMeals = meals.filter(m => isSameDay(new Date(m.date), calDate));
+      const dayWorkouts = workouts.filter(w => isSameDay(new Date(w.date), calDate));
+      const dayDrinks = drinks.filter(dr => isSameDay(new Date(dr.date), calDate));
+
+      if (activeFilter === 'default') {
+        // Original: day number + dot
+        cellContent = `${calDate.getDate()}`;
+        if (dayMeals.length > 0 || dayWorkouts.length > 0) {
+          const hasSnack = dayMeals.some(m => m.mealType === 'Snack');
+          dotColor = hasSnack ? 'amber' : 'green';
+        }
+      } else if (activeFilter === 'calories') {
+        const kcal = dayMeals.reduce((s, m) => s + (m.kcal || 0), 0) + dayDrinks.reduce((s, d) => s + (d.kcal || 0), 0);
+        cellContent = `<span class="mc-day-num">${calDate.getDate()}</span>`;
+        if (kcal > 0) {
+          cellCls = kcal <= 2300 ? 'mc-filter-green' : 'mc-filter-red';
+          cellContent += `<span class="mc-filter-val">${kcal}</span>`;
+        }
+      } else if (activeFilter === 'exercise') {
+        cellContent = `<span class="mc-day-num">${calDate.getDate()}</span>`;
+        if (dayWorkouts.length > 0) {
+          cellCls = 'mc-filter-green';
+          const wIcon = WORKOUT_ICONS[dayWorkouts[0].type] || '🏃';
+          cellContent += `<span class="mc-filter-icon">${wIcon}</span>`;
+        }
+      } else if (activeFilter === 'snacks') {
+        cellContent = `<span class="mc-day-num">${calDate.getDate()}</span>`;
+        const hasSnack = dayMeals.some(m => m.mealType === 'Snack');
+        const hasData = dayMeals.length > 0;
+        if (hasData && !hasSnack) {
+          cellCls = 'mc-filter-green';
+          cellContent += `<span class="mc-filter-icon">✨</span>`;
+        } else if (hasSnack) {
+          cellCls = 'mc-filter-red';
+          const snacks = dayMeals.filter(m => m.mealType === 'Snack');
+          cellContent += `<span class="mc-filter-icon">${snacks.map(s => snackEmoji(s.description)).join('')}</span>`;
+        }
+      } else if (activeFilter === 'alcohol') {
+        cellContent = `<span class="mc-day-num">${calDate.getDate()}</span>`;
+        const units = dayDrinks.reduce((s, d) => s + (d.units || 0), 0);
+        if (units > 0) {
+          cellCls = 'mc-filter-amber';
+          cellContent += `<span class="mc-filter-val">${units.toFixed(1)}</span>`;
+        } else if (startOfDay(calDate) <= startOfDay(today)) {
+          cellCls = 'mc-filter-green';
+          cellContent += `<span class="mc-filter-icon">✨</span>`;
+        }
+      }
     }
 
+    if (activeFilter === 'default' && !cellContent) cellContent = inMonth ? `${calDate.getDate()}` : '';
+
     const dateISO = inMonth ? startOfDay(calDate).toISOString() : '';
-    calHTML += `<div class="mc-day ${isToday ? 'today' : ''} ${!inMonth ? 'empty' : 'clickable'}"${dateISO ? ` data-date="${dateISO}"` : ''}>
-      ${inMonth ? calDate.getDate() : ''}
+    calHTML += `<div class="mc-day ${isToday ? 'today' : ''} ${!inMonth ? 'empty' : 'clickable'} ${cellCls}"${dateISO ? ` data-date="${dateISO}"` : ''}>
+      ${cellContent}
       ${dotColor ? `<span class="mc-dot ${dotColor}"></span>` : ''}
     </div>`;
 
     calDate.setDate(calDate.getDate() + 1);
-    if (calDate > me && calDate.getDay() !== 1) {
-      // fill rest of the week
-    }
     if (calDate > me && calDate.getDay() === 1) break;
   }
   calHTML += '</div>';
@@ -115,7 +191,7 @@ export async function render(el) {
   const totalAlcUnits = drinks.reduce((s, d) => s + (d.units || 0), 0);
   const totalAlcKcal = drinks.reduce((s, d) => s + (d.kcal || 0), 0);
 
-  // Snacking score: clean weekdays / total weekdays
+  // Snacking score
   let cleanWeekdays = 0;
   let totalWeekdays = 0;
   const checkDate = new Date(ms);
@@ -130,12 +206,12 @@ export async function render(el) {
   }
   const snackPct = totalWeekdays > 0 ? Math.round((cleanWeekdays / totalWeekdays) * 100) : 0;
 
-  // Weight: start vs end
+  // Weight
   const startWeight = weights.length > 0 ? weights[0].value : null;
   const endWeight = weights.length > 0 ? weights[weights.length - 1].value : null;
   const weightDelta = (startWeight != null && endWeight != null) ? endWeight - startWeight : null;
 
-  // Best day (lowest calories with data)
+  // Best day
   const dayCalMap = {};
   for (const m of meals) {
     const key = startOfDay(new Date(m.date)).getTime();
@@ -155,7 +231,7 @@ export async function render(el) {
     </div>
     <div class="mo-stats-grid">
       <div class="mo-stat-card">
-        <div class="mo-stat-icon amber">${icon('flame', 18)}</div>
+        <div class="mo-stat-icon purple">${icon('flame', 18)}</div>
         <div class="mo-stat-value">${totalKcal.toLocaleString()}</div>
         <div class="mo-stat-label">Total Calories</div>
         <div class="mo-stat-sub">~${avgKcal} kcal/day</div>
@@ -167,13 +243,13 @@ export async function render(el) {
         <div class="mo-stat-sub">${activeDayCount} active day${activeDayCount !== 1 ? 's' : ''}</div>
       </div>
       <div class="mo-stat-card">
-        <div class="mo-stat-icon purple">${icon('beer', 18)}</div>
+        <div class="mo-stat-icon amber">${icon('beer', 18)}</div>
         <div class="mo-stat-value">${totalAlcUnits.toFixed(1)}</div>
         <div class="mo-stat-label">Alcohol Units</div>
         <div class="mo-stat-sub">${totalAlcKcal} kcal</div>
       </div>
       <div class="mo-stat-card">
-        <div class="mo-stat-icon amber">${icon('apple', 18)}</div>
+        <div class="mo-stat-icon red">${icon('apple', 18)}</div>
         <div class="mo-stat-value">${snackPct}%</div>
         <div class="mo-stat-label">Snack-free Score</div>
         <div class="mo-stat-sub">${cleanWeekdays}/${totalWeekdays} weekdays</div>

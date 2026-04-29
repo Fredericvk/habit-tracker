@@ -7,8 +7,8 @@ export async function seedDefaults() {
 
   const now = new Date();
   const monday = startOfWeek(now);
-  const twoMonths = new Date(monday);
-  twoMonths.setMonth(twoMonths.getMonth() + 2);
+  const eightWeeks = new Date(monday);
+  eightWeeks.setDate(eightWeeks.getDate() + 8 * 7);
   const threeMonths = new Date(monday);
   threeMonths.setMonth(threeMonths.getMonth() + 3);
 
@@ -17,23 +17,23 @@ export async function seedDefaults() {
       type: 'calories',
       title: 'Calories',
       icon: '🔥',
-      target: 2300,
-      unit: 'kcal/day',
-      comparison: 'lte',
+      daysPerWeek: 5,
+      dailyTarget: 2300,
+      unit: 'days under target',
       startDate: monday.getTime(),
-      endDate: twoMonths.getTime(),
+      endDate: eightWeeks.getTime(),
       isActive: 1
     },
     {
       type: 'exercise',
       title: 'Exercise',
       icon: '💪',
-      target: 7,
-      unit: 'active days/week',
-      comparison: 'gte',
-      note: '4 workouts + 3 walks',
+      workoutsPerWeek: 4,
+      walksPerWeek: 3,
+      walkMinDuration: 30,
+      unit: 'workouts + walks',
       startDate: monday.getTime(),
-      endDate: twoMonths.getTime(),
+      endDate: eightWeeks.getTime(),
       isActive: 1
     },
     {
@@ -44,7 +44,7 @@ export async function seedDefaults() {
       unit: 'clean weekdays/week',
       comparison: 'gte',
       startDate: monday.getTime(),
-      endDate: twoMonths.getTime(),
+      endDate: eightWeeks.getTime(),
       isActive: 1
     },
     {
@@ -55,7 +55,7 @@ export async function seedDefaults() {
       unit: 'units/week',
       comparison: 'lte',
       startDate: monday.getTime(),
-      endDate: twoMonths.getTime(),
+      endDate: eightWeeks.getTime(),
       isActive: 1
     },
     {
@@ -64,7 +64,6 @@ export async function seedDefaults() {
       icon: '⚖️',
       target: 93.0,
       unit: 'kg',
-      comparison: 'lte',
       startDate: monday.getTime(),
       endDate: threeMonths.getTime(),
       isActive: 1

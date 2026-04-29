@@ -26,7 +26,16 @@ export async function mealsInRange(start, end) {
 
 // ===== WORKOUTS =====
 export async function addWorkout(workout) {
-  return db.workouts.add({ ...workout, date: startOfDay(workout.date).getTime() });
+  const validTypes = ['Run', 'Gym', 'Walk', 'Cycle', 'Swim', 'Yoga', 'HIIT'];
+  const type = validTypes.includes(workout.type) ? workout.type : 'Run';
+  const duration = Math.max(0, Math.min(999, parseInt(workout.duration) || 0));
+  const notes = String(workout.notes || '').slice(0, 200);
+  return db.workouts.add({
+    date: startOfDay(workout.date).getTime(),
+    type,
+    duration,
+    notes
+  });
 }
 export async function getWorkouts() { return db.workouts.toArray(); }
 export async function deleteWorkout(id) { return db.workouts.delete(id); }
@@ -78,6 +87,11 @@ export async function updateGoal(id, changes) {
   if (changes.startDate != null) sanitized.startDate = parseInt(changes.startDate) || Date.now();
   if (changes.endDate != null) sanitized.endDate = parseInt(changes.endDate) || Date.now();
   if (changes.title != null) sanitized.title = String(changes.title).slice(0, 100);
+  if (changes.daysPerWeek != null) sanitized.daysPerWeek = Math.max(1, Math.min(7, parseInt(changes.daysPerWeek) || 5));
+  if (changes.dailyTarget != null) sanitized.dailyTarget = Math.max(0, Math.min(99999, parseInt(changes.dailyTarget) || 2300));
+  if (changes.workoutsPerWeek != null) sanitized.workoutsPerWeek = Math.max(0, Math.min(7, parseInt(changes.workoutsPerWeek) || 4));
+  if (changes.walksPerWeek != null) sanitized.walksPerWeek = Math.max(0, Math.min(7, parseInt(changes.walksPerWeek) || 3));
+  if (changes.walkMinDuration != null) sanitized.walkMinDuration = Math.max(5, Math.min(300, parseInt(changes.walkMinDuration) || 30));
   return db.goals.update(id, sanitized);
 }
 export async function addGoal(goal) {
@@ -136,4 +150,37 @@ export async function totalUnitsForWeek(weekStart) {
 export async function totalAlcoholKcalForWeek(weekStart) {
   const drinks = await drinksInRange(weekStart, endOfWeek(weekStart));
   return drinks.reduce((sum, d) => sum + (d.kcal || 0), 0);
+}
+
+// Count days in a week where total calories ≤ target
+export async function daysUnderCalorieTarget(weekStart, dailyTarget) {
+  const days = daysInWeek(weekStart);
+  let count = 0;
+  for (const day of days) {
+    const cal = await totalCaloriesForDay(day);
+    if (cal > 0 && cal <= dailyTarget) count++;
+  }
+  return count;
+}
+
+// Count non-walk workout days in a week
+export async function workoutDaysForWeek(weekStart) {
+  const ws = await workoutsInRange(weekStart, endOfWeek(weekStart));
+  const daySet = new Set();
+  for (const w of ws) {
+    if (w.type !== 'Walk') daySet.add(startOfDay(new Date(w.date)).getTime());
+  }
+  return daySet.size;
+}
+
+// Count walk days (≥ minDuration) in a week
+export async function walkDaysForWeek(weekStart, minDuration = 30) {
+  const ws = await workoutsInRange(weekStart, endOfWeek(weekStart));
+  const daySet = new Set();
+  for (const w of ws) {
+    if (w.type === 'Walk' && (w.duration || 0) >= minDuration) {
+      daySet.add(startOfDay(new Date(w.date)).getTime());
+    }
+  }
+  return daySet.size;
 }

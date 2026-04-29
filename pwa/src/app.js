@@ -8,7 +8,7 @@ import * as goalsScreen from './screens/goalsScreen.js';
 // Current state
 let currentTab = 'overview';
 let overviewSeg = 'week';
-let logSeg = 'food';
+let logSeg = 'calories';
 
 async function boot() {
   await seedDefaults();
