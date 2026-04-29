@@ -79,7 +79,9 @@ export async function render(el) {
   ]);
 
   const calTarget = calGoal?.dailyTarget ?? calGoal?.target ?? 2300;
-  const exTarget = exGoal?.target ?? 7;
+  const exWorkoutsTarget = exGoal?.workoutsPerWeek ?? 3;
+  const exWalksTarget = exGoal?.walksPerWeek ?? 2;
+  const exTotalTarget = exWorkoutsTarget + exWalksTarget;
   const snTarget = snGoal?.target ?? 5;
   const alTarget = alGoal?.target ?? 17;
   const wtTarget = wtGoal?.target ?? 93.0;
@@ -247,15 +249,23 @@ export async function render(el) {
     return `<div class="wk-ex-day-col wk-ex-active"><span class="wk-ex-day-label">${DAY_LABELS[di]}</span>${items}</div>`;
   }).join('');
 
+  // Count workouts (non-Walk) and walks separately
+  const walkTypes = ['Walk'];
+  const workoutCount = workouts.filter(w => !walkTypes.includes(w.type)).length;
+  const walkCount = workouts.filter(w => walkTypes.includes(w.type)).length;
+  const workoutsRemaining = Math.max(0, exWorkoutsTarget - workoutCount);
+  const walksRemaining = Math.max(0, exWalksTarget - walkCount);
+
   // Days remaining in the week (including today)
   const daysRemaining = days.filter(d => startOfDay(d) >= startOfDay(today)).length;
 
   appendCard(container, 'wk-ex-card', `
     <div class="wk-card-head-ring">
-      ${progressRing(activeDays, exTarget, 'var(--accent-green)')}
+      ${progressRing(activeDays, exTotalTarget, 'var(--accent-green)')}
       <div class="wk-card-info">
         <div class="wk-card-title"><span class="wk-card-icon wk-icon-ex">${icon('dumbbell', 14)}</span> Exercise</div>
-        <div class="wk-card-remaining">${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining</div>
+        <div class="wk-card-remaining">${workoutsRemaining} workout${workoutsRemaining !== 1 ? 's' : ''} · ${walksRemaining} walk${walksRemaining !== 1 ? 's' : ''} remaining</div>
+        <div class="wk-card-remaining">${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left this week</div>
       </div>
     </div>
     <hr class="wk-divider"/>
