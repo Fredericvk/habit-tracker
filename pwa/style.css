@@ -29,8 +29,7 @@
 }
 
 html, body {
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   overflow: hidden;
   font-family: var(--font-text);
   background: var(--bg-deep);
@@ -44,7 +43,8 @@ html, body {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100vh;
+  height: var(--app-height, 100vh);
   max-width: 480px;
   margin: 0 auto;
   position: relative;
