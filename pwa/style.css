@@ -1,5 +1,5 @@
 /* ===== RESET & VARIABLES ===== */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 :root {
   --bg-deep: #F7F8FA;
@@ -44,7 +44,6 @@ html, body {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
@@ -65,7 +64,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(48px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-right, 0px)) 8px calc(20px + env(safe-area-inset-left, 0px));
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 8px;
   flex-shrink: 0;
 }
 .header-title {

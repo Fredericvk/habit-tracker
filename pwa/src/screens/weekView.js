@@ -277,17 +277,15 @@ export async function render(el) {
     const dayIdx = days.indexOf(d);
     const dayMeals = onDay(meals, d);
     const snackItems = dayMeals.filter(m => m.mealType === 'Snack');
-    const hasData = dayMeals.length > 0;
-    const isClean = hasData && snackItems.length === 0;
     const snacked = snackItems.length > 0;
+    const isPast = startOfDay(d) <= startOfDay(new Date());
 
     let statusCls = 'wk-sn-empty';
     let statusContent = '—';
-    if (isClean) { statusCls = 'wk-sn-clean'; statusContent = '✓'; }
-    else if (snacked) {
+    if (snacked) {
       statusCls = 'wk-sn-fail';
       statusContent = snackItems.map(s => snackEmoji(s.description)).join('<br>');
-    }
+    } else if (isPast) { statusCls = 'wk-sn-clean'; statusContent = '✓'; }
 
     return `<div class="wk-sn-day ${statusCls}">
       <span class="wk-sn-label">${DAY_LABELS[dayIdx]}</span>

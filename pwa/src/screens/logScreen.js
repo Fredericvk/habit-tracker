@@ -299,9 +299,9 @@ async function renderWorkout() {
   const card = document.createElement('div');
   card.className = 'glass-card';
 
-  const types = ['Run', 'Gym', 'Walk', 'Cycle', 'Swim', 'Yoga', 'HIIT'];
-  const icons = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', Yoga: '🧘', HIIT: '🔥' };
-  const CAL_PER_MIN = { Run: 10, Gym: 8, Walk: 4, Cycle: 9, Swim: 11, Yoga: 4, HIIT: 12 };
+  const types = ['Run', 'Gym', 'Walk', 'Cycle', 'Swim', 'HIIT'];
+  const icons = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', HIIT: '🔥' };
+  const CAL_PER_MIN = { Run: 10, Gym: 8, Walk: 4, Cycle: 9, Swim: 11, HIIT: 12 };
   const estimatedKcal = workoutDuration * (CAL_PER_MIN[workoutType] || 7);
 
   card.innerHTML = `
@@ -328,11 +328,7 @@ async function renderWorkout() {
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <span style="font-weight:600">Calories burned</span>
-      <div class="stepper">
-        <button id="wo-kcal-minus">−</button>
-        <span class="stepper-value" id="wo-kcal">${estimatedKcal}</span>
-        <button id="wo-kcal-plus">+</button>
-      </div>
+      <input type="number" inputmode="numeric" pattern="[0-9]*" id="wo-kcal" class="input-field" style="width:100px;text-align:center" value="${estimatedKcal}" min="0" max="9999" />
     </div>
     <div class="input-group">
       <label>Notes (optional)</label>
@@ -354,25 +350,15 @@ async function renderWorkout() {
   // Duration stepper (step 5) — also updates kcal estimate
   const updateKcalEstimate = () => {
     const est = workoutDuration * (CAL_PER_MIN[workoutType] || 7);
-    card.querySelector('#wo-kcal').textContent = est;
+    card.querySelector('#wo-kcal').value = est;
   };
   card.querySelector('#wo-minus').onclick = () => { workoutDuration = Math.max(5, workoutDuration - 5); card.querySelector('#wo-dur').textContent = workoutDuration; updateKcalEstimate(); };
   card.querySelector('#wo-plus').onclick = () => { workoutDuration = Math.min(300, workoutDuration + 5); card.querySelector('#wo-dur').textContent = workoutDuration; updateKcalEstimate(); };
 
-  // Kcal stepper (step 25, manual override)
-  card.querySelector('#wo-kcal-minus').onclick = () => {
-    const el = card.querySelector('#wo-kcal');
-    el.textContent = Math.max(0, parseInt(el.textContent) - 25);
-  };
-  card.querySelector('#wo-kcal-plus').onclick = () => {
-    const el = card.querySelector('#wo-kcal');
-    el.textContent = parseInt(el.textContent) + 25;
-  };
-
   // Save
   card.querySelector('#wo-save').onclick = async () => {
     const notes = card.querySelector('#wo-notes').value.trim().slice(0, 200);
-    const kcal = parseInt(card.querySelector('#wo-kcal').textContent) || 0;
+    const kcal = parseInt(card.querySelector('#wo-kcal').value) || 0;
     await store.addWorkout({ date: currentDate, type: workoutType, duration: workoutDuration, kcal, notes });
     showToast('✓ Workout logged');
     render(container, 'workout');

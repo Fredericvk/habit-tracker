@@ -66,6 +66,16 @@ export async function render(el) {
   ]);
   const today = new Date();
 
+  // Load goals for dot logic and week detail
+  const [calGoal, exGoal, snackGoal, alcGoal] = await Promise.all([
+    store.getGoal('calories'),
+    store.getGoal('exercise'),
+    store.getGoal('snacks'),
+    store.getGoal('alcohol'),
+  ]);
+  const calTarget = calGoal?.dailyTarget ?? calGoal?.target ?? 2300;
+  const alcWeeklyBudget = alcGoal?.weeklyUnits ?? 6;
+
   // Calendar header
   const headers = ['Wk', 'M', 'T', 'W', 'T', 'F', 'S', 'S'];
   let calHTML = '<div class="mini-calendar">';
@@ -98,11 +108,23 @@ export async function render(el) {
       const dayDrinks = drinks.filter(dr => isSameDay(new Date(dr.date), calDate));
 
       if (activeFilter === 'default') {
-        // Original: day number + dot
         cellContent = `${calDate.getDate()}`;
-        if (dayMeals.length > 0 || dayWorkouts.length > 0) {
+        // Only show dot for days up to today that have some data
+        if (startOfDay(calDate) <= startOfDay(today) && (dayMeals.length > 0 || dayWorkouts.length > 0 || dayDrinks.length > 0)) {
+          // Check 4 goals: calories, exercise, no snacks, no alcohol
+          let missed = 0;
+          const dayKcal = dayMeals.reduce((s, m) => s + (m.kcal || 0), 0) + dayDrinks.reduce((s, d) => s + (d.kcal || 0), 0);
+          if (dayKcal > calTarget) missed++;
+          if (dayWorkouts.length === 0) missed++;
           const hasSnack = dayMeals.some(m => m.mealType === 'Snack');
-          dotColor = hasSnack ? 'amber' : 'green';
+          if (hasSnack) missed++;
+          const dayUnits = dayDrinks.reduce((s, d) => s + (d.units || 0), 0);
+          const dailyAlcBudget = alcWeeklyBudget / 7;
+          if (dayUnits > dailyAlcBudget) missed++;
+
+          if (missed === 0) dotColor = 'green';
+          else if (missed <= 2) dotColor = 'amber';
+          else dotColor = 'red';
         }
       } else if (activeFilter === 'calories') {
         const kcal = dayMeals.reduce((s, m) => s + (m.kcal || 0), 0) + dayDrinks.reduce((s, d) => s + (d.kcal || 0), 0);
@@ -164,7 +186,7 @@ export async function render(el) {
 
   // Week detail flip setup
   calCard.querySelectorAll('.mc-wk').forEach(wkEl => {
-    wkEl.onclick = () => flipToWeekDetail(new Date(wkEl.dataset.wk), calCard, flipContainer);
+    wkEl.onclick = () => flipToWeekDetail(new Date(wkEl.dataset.wk), calCard, flipContainer, calTarget);
   });
 
   // Day tap → navigate to day view
@@ -274,7 +296,7 @@ export async function render(el) {
   container.appendChild(summaryCard);
 }
 
-async function flipToWeekDetail(weekStart, flipCard, flipContainer) {
+async function flipToWeekDetail(weekStart, flipCard, flipContainer, calTarget = 2300) {
   // Phase 1: flip out
   flipCard.classList.add('flipping-out');
   await new Promise(r => setTimeout(r, 250));
@@ -300,17 +322,20 @@ async function flipToWeekDetail(weekStart, flipCard, flipContainer) {
       const dayD = wkDrinks.filter(dr => isSameDay(new Date(dr.date), d));
 
       let cls = 'muted', val = '—';
+      const isPast = startOfDay(d) <= startOfDay(new Date());
       if (row === 'Calories') {
-        const kcal = dayMeals.reduce((s, m) => s + (m.kcal || 0), 0);
-        if (kcal > 0) { val = Math.round(kcal / 100) + ''; cls = kcal <= 2300 ? 'green' : 'red'; }
+        const kcal = dayMeals.reduce((s, m) => s + (m.kcal || 0), 0) + dayD.reduce((s, dr) => s + (dr.kcal || 0), 0);
+        if (kcal > 0) { val = kcal.toLocaleString(); cls = kcal <= calTarget ? 'green' : 'red'; }
       } else if (row === 'Exercise') {
         if (dayW.length > 0) { val = '✓'; cls = 'green'; }
       } else if (row === 'Snacking') {
         const has = dayMeals.some(m => m.mealType === 'Snack');
-        if (dayMeals.length > 0) { val = has ? '✕' : '✓'; cls = has ? 'red' : 'green'; }
+        if (has) { val = '✕'; cls = 'red'; }
+        else if (isPast) { val = '✓'; cls = 'green'; }
       } else if (row === 'Alcohol') {
         const units = dayD.reduce((s, dr) => s + (dr.units || 0), 0);
         if (units > 0) { val = units.toFixed(1); cls = 'amber'; }
+        else if (isPast) { val = '✓'; cls = 'green'; }
       }
       gridHTML += `<div class="wg-cell ${cls}">${val}</div>`;
     }
@@ -335,13 +360,13 @@ async function flipToWeekDetail(weekStart, flipCard, flipContainer) {
   flipCard.classList.add('flipping-in');
 
   // Back button
-  flipCard.querySelector('#flip-back').onclick = () => flipBackToCalendar(flipCard, flipContainer);
+  flipCard.querySelector('#flip-back').onclick = () => flipBackToCalendar(flipCard, flipContainer, calTarget);
 
   await new Promise(r => setTimeout(r, 250));
   flipCard.classList.remove('flipping-in');
 }
 
-function flipBackToCalendar(flipCard, flipContainer) {
+function flipBackToCalendar(flipCard, flipContainer, calTarget) {
   flipCard.classList.add('flipping-out');
   setTimeout(() => {
     flipCard.innerHTML = flipContainer._calendarHTML;
@@ -350,7 +375,7 @@ function flipBackToCalendar(flipCard, flipContainer) {
 
     // Re-attach week click handlers
     flipCard.querySelectorAll('.mc-wk').forEach(wkEl => {
-      wkEl.onclick = () => flipToWeekDetail(new Date(wkEl.dataset.wk), flipCard, flipContainer);
+      wkEl.onclick = () => flipToWeekDetail(new Date(wkEl.dataset.wk), flipCard, flipContainer, calTarget);
     });
 
     // Re-attach day click handlers

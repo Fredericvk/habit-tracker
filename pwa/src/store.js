@@ -3,7 +3,7 @@ import { startOfDay, endOfDay, startOfWeek, endOfWeek, daysInWeek, isWeekday } f
 
 // Drink defaults
 export const DRINK_UNITS = { Beer: 2.3, Wine: 2.1, Spirit: 1.0, Cocktail: 2.0, Cider: 2.6 };
-export const DRINK_KCAL  = { Beer: 182, Wine: 158, Spirit: 61, Cocktail: 180, Cider: 210 };
+export const DRINK_KCAL  = { Beer: 200, Wine: 158, Spirit: 61, Cocktail: 180, Cider: 210 };
 
 // ===== MEALS =====
 export async function addMeal(meal) {
@@ -132,7 +132,8 @@ export async function activeDaysForWeek(weekStart) {
 }
 
 export async function cleanWeekdaysForWeek(weekStart) {
-  const days = daysInWeek(weekStart).filter(d => isWeekday(d));
+  const today = new Date();
+  const days = daysInWeek(weekStart).filter(d => startOfDay(d) <= startOfDay(today));
   let clean = 0;
   for (const day of days) {
     const meals = await mealsInRange(day, day);

@@ -237,28 +237,20 @@ export async function render(el) {
   halfRow.className = 'dy-half-row';
 
   // Snack status card
-  const snClean = !hasSnack && meals.length > 0;
   const snCard = document.createElement('div');
   snCard.className = `glass-card dy-half-card ${!hasSnack ? 'dy-half-ok' : 'dy-half-warn'}`;
-  if (snClean) {
+  if (!hasSnack) {
     snCard.innerHTML = `
       <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">🍫</span><span class="dy-half-head-title">Snacks</span></div>
       <span class="dy-half-icon">✨</span>
       <span class="dy-half-title">No Snacks</span>
       <span class="dy-half-sub">⭐ Clean day! ⭐</span>`;
-  } else if (hasSnack) {
+  } else {
     snCard.innerHTML = `
       <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">🍫</span><span class="dy-half-head-title">Snacks</span></div>
       <span class="dy-half-icon">🍿</span>
       <span class="dy-half-title">Snacked</span>
       <span class="dy-half-sub">${snackItems.length} snack${snackItems.length > 1 ? 's' : ''} · ${snackKcal} kcal</span>`;
-  } else {
-    snCard.innerHTML = `
-      <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">🍫</span><span class="dy-half-head-title">Snacks</span></div>
-      <span class="dy-half-icon">✨</span>
-      <span class="dy-half-title">No Snacks</span>
-      <span class="dy-half-sub">⭐ Clean day! ⭐</span>
-      <label class="dy-snack-confirm"><input type="checkbox" id="dy-snack-check" checked/> Confirm no snacks</label>`;
   }
 
   // Alcohol status card

@@ -17,6 +17,7 @@ async function boot() {
   setupSegmentedControls();
   setupSettings();
   setupDayNavigation();
+  setupHaptics();
 
   // Render default view
   renderOverview();
@@ -132,4 +133,14 @@ function renderGoals() {
 }
 
 // Boot
+// ===== HAPTIC FEEDBACK =====
+function setupHaptics() {
+  const interactiveSelector = 'button, .tab-btn, .seg-btn, .drink-option, .chip, .nav-arrow, .fab-circle, .delete-btn, .stepper button, input[type="checkbox"]';
+  document.addEventListener('pointerdown', (e) => {
+    if (e.target.closest(interactiveSelector) && navigator.vibrate) {
+      navigator.vibrate(5);
+    }
+  });
+}
+
 boot();
