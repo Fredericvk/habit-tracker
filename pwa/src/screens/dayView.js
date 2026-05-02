@@ -241,13 +241,13 @@ export async function render(el) {
   snCard.className = `glass-card dy-half-card ${!hasSnack ? 'dy-half-ok' : 'dy-half-warn'}`;
   if (!hasSnack) {
     snCard.innerHTML = `
-      <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">🍫</span><span class="dy-half-head-title">Snacks</span></div>
+      <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">${icon('candy', 16)}</span><span class="dy-half-head-title">Snacks</span></div>
       <span class="dy-half-icon">✨</span>
       <span class="dy-half-title">No Snacks</span>
       <span class="dy-half-sub">⭐ Clean day! ⭐</span>`;
   } else {
     snCard.innerHTML = `
-      <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">🍫</span><span class="dy-half-head-title">Snacks</span></div>
+      <div class="dy-half-head"><span class="dy-half-head-icon dy-hicon-snack">${icon('candy', 16)}</span><span class="dy-half-head-title">Snacks</span></div>
       <span class="dy-half-icon">🍿</span>
       <span class="dy-half-title">Snacked</span>
       <span class="dy-half-sub">${snackItems.length} snack${snackItems.length > 1 ? 's' : ''} · ${snackKcal} kcal</span>`;

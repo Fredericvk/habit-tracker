@@ -22,13 +22,26 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-export async function render(el, segment = 'calories') {
+export async function render(el) {
   container = el;
   container.innerHTML = '';
 
-  if (segment === 'calories') renderCalories();
-  else if (segment === 'workout') renderWorkout();
-  else if (segment === 'weight') renderWeight();
+  // Single date nav at top (no card wrapper)
+  const dateNav = document.createElement('div');
+  dateNav.className = 'date-nav';
+  dateNav.innerHTML = `
+    <button class="nav-arrow" id="log-prev">${icon('chevronLeft', 16)}</button>
+    <span class="date-label">${formatDate(currentDate)}</span>
+    <button class="nav-arrow" id="log-next">${icon('chevronRight', 16)}</button>`;
+  container.appendChild(dateNav);
+
+  dateNav.querySelector('#log-prev').onclick = () => { currentDate.setDate(currentDate.getDate() - 1); render(container); };
+  dateNav.querySelector('#log-next').onclick = () => { currentDate.setDate(currentDate.getDate() + 1); render(container); };
+
+  // Render all sections
+  await renderCalories();
+  await renderWorkout();
+  await renderWeight();
 }
 
 const SNACK_DEFAULTS = [
@@ -47,16 +60,9 @@ async function renderCalories() {
   const card = document.createElement('div');
   card.className = calMode === 'Snack' ? 'glass-card snack-warning-card' : 'glass-card';
 
-  // Date nav
-  const dateNav = `
-    <div class="date-nav">
-      <button class="nav-arrow" id="cal-prev">${icon('chevronLeft', 16)}</button>
-      <span class="date-label">${formatDate(currentDate)}</span>
-      <button class="nav-arrow" id="cal-next">${icon('chevronRight', 16)}</button>
-    </div>`;
-
   // 3-way toggle: Meal | Snack | Drink
   const toggle = `
+    <div class="card-title" style="margin-bottom:12px">${icon('flame', 16)} Calories</div>
     <div class="toggle-group">
       <button class="toggle-btn ${calMode === 'Meal' ? 'active' : ''}" data-mode="Meal">Meal</button>
       <button class="toggle-btn ${calMode === 'Snack' ? 'active' : ''}" data-mode="Snack">Snack</button>
@@ -144,7 +150,7 @@ async function renderCalories() {
       <button class="btn btn-primary btn-block" id="drink-add">Add drink</button>`;
   }
 
-  card.innerHTML = dateNav + formHTML;
+  card.innerHTML = formHTML;
   container.appendChild(card);
 
   // ── Today's entries card (meals + snacks + drinks combined) ──
@@ -207,22 +213,19 @@ async function renderCalories() {
         } else {
           await store.deleteMeal(Number(btn.dataset.id));
         }
-        render(container, 'calories');
+        render(container);
       };
     });
   }
 
   // ── Event handlers ──
-  card.querySelector('#cal-prev').onclick = () => { currentDate.setDate(currentDate.getDate() - 1); render(container, 'calories'); };
-  card.querySelector('#cal-next').onclick = () => { currentDate.setDate(currentDate.getDate() + 1); render(container, 'calories'); };
-
   card.querySelectorAll('.toggle-btn').forEach(btn => {
-    btn.onclick = () => { calMode = btn.dataset.mode; render(container, 'calories'); };
+    btn.onclick = () => { calMode = btn.dataset.mode; render(container); };
   });
 
   if (calMode === 'Meal') {
     card.querySelectorAll('.meal-type-btn').forEach(btn => {
-      btn.onclick = () => { mealType = btn.dataset.type; render(container, 'calories'); };
+      btn.onclick = () => { mealType = btn.dataset.type; render(container); };
     });
 
     const saveBtn = card.querySelector('#food-save');
@@ -238,7 +241,7 @@ async function renderCalories() {
           kcal
         });
         showToast('✓ Saved');
-        render(container, 'calories');
+        render(container);
       };
     }
   } else if (calMode === 'Snack') {
@@ -258,7 +261,7 @@ async function renderCalories() {
           kcal: snack.kcal
         });
         showToast('✓ Snack logged');
-        render(container, 'calories');
+        render(container);
       };
     });
 
@@ -275,22 +278,22 @@ async function renderCalories() {
           kcal
         });
         showToast('✓ Saved');
-        render(container, 'calories');
+        render(container);
       };
     }
   } else {
     // Drink mode handlers
     card.querySelectorAll('.drink-option').forEach(opt => {
-      opt.onclick = () => { drinkType = opt.dataset.type; drinkQty = 1; render(container, 'calories'); };
+      opt.onclick = () => { drinkType = opt.dataset.type; drinkQty = 1; render(container); };
     });
-    card.querySelector('#drink-minus').onclick = () => { if (drinkQty > 1) drinkQty--; render(container, 'calories'); };
-    card.querySelector('#drink-plus').onclick = () => { drinkQty++; render(container, 'calories'); };
+    card.querySelector('#drink-minus').onclick = () => { if (drinkQty > 1) drinkQty--; render(container); };
+    card.querySelector('#drink-plus').onclick = () => { drinkQty++; render(container); };
 
     card.querySelector('#drink-add').onclick = async () => {
       await store.addDrink({ date: currentDate, drinkType, quantity: drinkQty });
       showToast('✓ Drink added');
       drinkQty = 1;
-      render(container, 'calories');
+      render(container);
     };
   }
 }
@@ -305,11 +308,7 @@ async function renderWorkout() {
   const estimatedKcal = workoutDuration * (CAL_PER_MIN[workoutType] || 7);
 
   card.innerHTML = `
-    <div class="date-nav">
-      <button class="nav-arrow" id="wo-prev">‹</button>
-      <span class="date-label">${formatDate(currentDate)}</span>
-      <button class="nav-arrow" id="wo-next">›</button>
-    </div>
+    <div class="card-title" style="margin-bottom:12px">${icon('dumbbell', 16)} Workout</div>
     <div class="drink-grid">
       ${types.map(t => `
         <div class="drink-option ${workoutType === t ? 'selected' : ''}" data-type="${t}">
@@ -338,13 +337,9 @@ async function renderWorkout() {
   `;
   container.appendChild(card);
 
-  // Date nav
-  card.querySelector('#wo-prev').onclick = () => { currentDate.setDate(currentDate.getDate() - 1); render(container, 'workout'); };
-  card.querySelector('#wo-next').onclick = () => { currentDate.setDate(currentDate.getDate() + 1); render(container, 'workout'); };
-
   // Type selection
   card.querySelectorAll('.drink-option').forEach(opt => {
-    opt.onclick = () => { workoutType = opt.dataset.type; render(container, 'workout'); };
+    opt.onclick = () => { workoutType = opt.dataset.type; render(container); };
   });
 
   // Duration stepper (step 5) — also updates kcal estimate
@@ -361,7 +356,7 @@ async function renderWorkout() {
     const kcal = parseInt(card.querySelector('#wo-kcal').value) || 0;
     await store.addWorkout({ date: currentDate, type: workoutType, duration: workoutDuration, kcal, notes });
     showToast('✓ Workout logged');
-    render(container, 'workout');
+    render(container);
   };
 
   // Recent workouts today
@@ -383,7 +378,7 @@ async function renderWorkout() {
     recentCard.querySelectorAll('.delete-btn').forEach(btn => {
       btn.onclick = async () => {
         await store.deleteWorkout(Number(btn.dataset.id));
-        render(container, 'workout');
+        render(container);
       };
     });
   }
@@ -394,11 +389,7 @@ async function renderWeight() {
   card.className = 'glass-card';
 
   card.innerHTML = `
-    <div class="date-nav">
-      <button class="nav-arrow" id="wt-prev">‹</button>
-      <span class="date-label">${formatDate(currentDate)}</span>
-      <button class="nav-arrow" id="wt-next">›</button>
-    </div>
+    <div class="card-title" style="margin-bottom:12px">${icon('scale', 16)} Weight</div>
     <div class="weight-readout">
       <button class="adjust-btn" id="wt-down">−</button>
       <div>
@@ -411,34 +402,12 @@ async function renderWeight() {
   `;
   container.appendChild(card);
 
-  // Recent entries
-  const all = await store.getWeights();
-  const recentEntries = all.slice(0, 10);
-  if (recentEntries.length > 0) {
-    const recentCard = document.createElement('div');
-    recentCard.className = 'glass-card';
-    recentCard.innerHTML = `
-      <div class="card-title" style="margin-bottom:8px">Recent</div>
-      <div class="recent-list">
-        ${recentEntries.map(w => `
-          <div class="recent-item">
-            <span class="recent-date">${shortDate(new Date(w.date))}</span>
-            <span class="recent-value">${w.value.toFixed(1)} kg</span>
-          </div>
-        `).join('')}
-      </div>
-    `;
-    container.appendChild(recentCard);
-  }
-
-  card.querySelector('#wt-prev').onclick = () => { currentDate.setDate(currentDate.getDate() - 1); render(container, 'weight'); };
-  card.querySelector('#wt-next').onclick = () => { currentDate.setDate(currentDate.getDate() + 1); render(container, 'weight'); };
   card.querySelector('#wt-down').onclick = () => { weightValue = Math.max(40, weightValue - 0.1); card.querySelector('#wt-val').textContent = weightValue.toFixed(1); };
   card.querySelector('#wt-up').onclick = () => { weightValue = Math.min(200, weightValue + 0.1); card.querySelector('#wt-val').textContent = weightValue.toFixed(1); };
 
   card.querySelector('#wt-save').onclick = async () => {
     await store.addWeight({ date: currentDate, value: weightValue });
     showToast('✓ Weight saved');
-    render(container, 'weight');
+    render(container);
   };
 }

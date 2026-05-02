@@ -8,7 +8,6 @@ import * as goalsScreen from './screens/goalsScreen.js';
 // Current state
 let currentTab = 'overview';
 let overviewSeg = 'week';
-let logSeg = 'calories';
 
 async function boot() {
   await seedDefaults();
@@ -56,17 +55,6 @@ function setupSegmentedControls() {
         overviewSeg = btn.dataset.seg;
         overviewSC.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.seg === overviewSeg));
         renderOverview();
-      });
-    });
-  }
-
-  const logSC = document.getElementById('log-seg');
-  if (logSC) {
-    logSC.querySelectorAll('.seg-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        logSeg = btn.dataset.seg;
-        logSC.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.seg === logSeg));
-        renderLog();
       });
     });
   }
@@ -123,7 +111,7 @@ function renderOverview() {
 function renderLog() {
   const el = document.getElementById('log-content');
   if (!el) return;
-  logScreen.render(el, logSeg);
+  logScreen.render(el);
 }
 
 function renderGoals() {

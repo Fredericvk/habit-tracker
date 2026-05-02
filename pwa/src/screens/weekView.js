@@ -297,7 +297,7 @@ export async function render(el) {
     <div class="wk-card-head-ring">
       ${progressRing(cleanDays, snTarget, 'var(--danger)')}
       <div class="wk-card-info">
-        <div class="wk-card-title"><span class="wk-card-icon wk-icon-sn">🍫</span> No Snacking</div>
+        <div class="wk-card-title"><span class="wk-card-icon wk-icon-sn">${icon('candy', 14)}</span> No Snacking</div>
         <div class="wk-card-remaining">${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining</div>
       </div>
     </div>

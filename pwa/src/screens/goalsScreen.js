@@ -1,6 +1,15 @@
 import * as store from '../store.js';
 import { weeksBetween, startOfWeek, endOfWeek, shortDate, weekNumber } from '../dateHelper.js';
 import { escapeHTML } from '../utils/sanitize.js';
+import { icon } from '../utils/icons.js';
+
+const GOAL_ICONS = {
+  calories: { svg: () => icon('flame', 18), tint: 'var(--tint-purple)' },
+  exercise: { svg: () => icon('dumbbell', 18), tint: 'var(--tint-green)' },
+  snacking: { svg: () => icon('candy', 18), tint: 'var(--tint-amber)' },
+  alcohol: { svg: () => icon('beer', 18), tint: 'var(--tint-amber)' },
+  weight: { svg: () => icon('scale', 18), tint: 'var(--tint-blue)' },
+};
 
 let container = null;
 
@@ -90,7 +99,7 @@ export async function render(el) {
 
     card.innerHTML = `
       <div class="goal-header">
-        <div class="goal-icon" style="background:var(--tint-purple)">${escapeHTML(goal.icon || '🎯')}</div>
+        <div class="goal-icon" style="background:${GOAL_ICONS[goal.type]?.tint || 'var(--tint-purple)'}">${GOAL_ICONS[goal.type]?.svg() || escapeHTML(goal.icon || '🎯')}</div>
         <div class="goal-info">
           <div class="goal-title">${escapeHTML(goal.title)}</div>
           <div class="goal-subtitle">${escapeHTML(goalSubtitle(goal))}</div>
@@ -214,7 +223,7 @@ async function renderWeightGraph(goal) {
 
   card.innerHTML = `
     <div class="goal-header">
-      <div class="goal-icon" style="background:var(--tint-blue)">${escapeHTML(goal.icon || '⚖️')}</div>
+      <div class="goal-icon" style="background:${GOAL_ICONS.weight.tint}">${GOAL_ICONS.weight.svg()}</div>
       <div class="goal-info">
         <div class="goal-title">${escapeHTML(goal.title)}</div>
         <div class="goal-subtitle">Weight history</div>

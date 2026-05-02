@@ -40,10 +40,10 @@ export async function render(el) {
   filterBar.className = 'mo-filter-bar';
   const filters = [
     { id: 'default', label: 'All' },
-    { id: 'calories', label: '🔥 Cal' },
-    { id: 'exercise', label: '💪 Exercise' },
-    { id: 'snacks', label: '🍫 Snacks' },
-    { id: 'alcohol', label: '🍺 Alcohol' },
+    { id: 'calories', label: `${icon('flame', 14)} Cal` },
+    { id: 'exercise', label: `${icon('dumbbell', 14)} Exercise` },
+    { id: 'snacks', label: `${icon('candy', 14)} Snacks` },
+    { id: 'alcohol', label: `${icon('beer', 14)} Alcohol` },
   ];
   filterBar.innerHTML = filters.map(f =>
     `<button class="mo-filter-btn ${activeFilter === f.id ? 'active' : ''}" data-filter="${f.id}">${f.label}</button>`
@@ -269,7 +269,7 @@ export async function render(el) {
         <div class="mo-stat-sub">${totalAlcKcal} kcal</div>
       </div>
       <div class="mo-stat-card">
-        <div class="mo-stat-icon red">${icon('apple', 18)}</div>
+        <div class="mo-stat-icon red">${icon('candy', 18)}</div>
         <div class="mo-stat-value">${snackPct}%</div>
         <div class="mo-stat-label">Snack-free Score</div>
         <div class="mo-stat-sub">${cleanWeekdays}/${totalWeekdays} weekdays</div>
