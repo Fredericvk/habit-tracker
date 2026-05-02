@@ -174,11 +174,11 @@ export async function render(el) {
 
   // Delete handlers for meals/snacks
   calCard.querySelectorAll('.delete-btn[data-meal-id]').forEach(btn => {
-    btn.onclick = async () => { await store.deleteMeal(Number(btn.dataset.mealId)); render(container); };
+    btn.onclick = async () => { await store.deleteMeal(btn.dataset.mealId); render(container); };
   });
   // Delete handlers for drinks
   calCard.querySelectorAll('.delete-btn[data-drink-id]').forEach(btn => {
-    btn.onclick = async () => { await store.deleteDrink(Number(btn.dataset.drinkId)); render(container); };
+    btn.onclick = async () => { await store.deleteDrink(btn.dataset.drinkId); render(container); };
   });
 
   /* ══════════════════════════════
