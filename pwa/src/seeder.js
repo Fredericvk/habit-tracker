@@ -1,9 +1,18 @@
 import { getGoals, addGoal } from './store.js';
 import { startOfWeek } from './dateHelper.js';
 
+const SEEDER_KEY = 'habitTrackerDefaultsSeeded';
+
 export async function seedDefaults() {
+  // Skip on return visits to avoid creating duplicates when cloud sync
+  // hasn't completed yet (local IndexedDB may appear empty at boot).
+  if (localStorage.getItem(SEEDER_KEY)) return;
+
   const existing = await getGoals();
-  if (existing.length > 0) return;
+  if (existing.length > 0) {
+    localStorage.setItem(SEEDER_KEY, 'true');
+    return;
+  }
 
   const now = new Date();
   const monday = startOfWeek(now);
@@ -73,4 +82,5 @@ export async function seedDefaults() {
   for (const goal of defaults) {
     await addGoal(goal);
   }
+  localStorage.setItem(SEEDER_KEY, 'true');
 }

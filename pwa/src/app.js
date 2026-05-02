@@ -4,6 +4,7 @@ import * as weekView from './screens/weekView.js';
 import * as monthView from './screens/monthView.js';
 import * as logScreen from './screens/logScreen.js';
 import * as goalsScreen from './screens/goalsScreen.js';
+import db from './db.js';
 
 // Current state
 let currentTab = 'overview';
@@ -20,6 +21,15 @@ async function boot() {
 
   // Render default view
   renderOverview();
+
+  // Re-render and re-seed when dexie-cloud completes a sync so that data
+  // retrieved from the cloud is shown without requiring a manual refresh.
+  // seedDefaults() is a fast no-op on subsequent calls thanks to its
+  // localStorage guard; re-rendering on every sync keeps the UI current.
+  db.cloud.events.syncComplete.subscribe(async () => {
+    await seedDefaults();
+    renderCurrentTab();
+  });
 }
 
 // ===== TAB NAVIGATION =====
@@ -99,6 +109,12 @@ function setupDayNavigation() {
 }
 
 // ===== RENDER HELPERS =====
+function renderCurrentTab() {
+  if (currentTab === 'overview') renderOverview();
+  else if (currentTab === 'log') renderLog();
+  else if (currentTab === 'goals') renderGoals();
+}
+
 function renderOverview() {
   const el = document.getElementById('overview-content');
   if (!el) return;

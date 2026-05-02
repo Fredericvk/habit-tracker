@@ -209,9 +209,9 @@ async function renderCalories() {
     recentCard.querySelectorAll('.delete-btn').forEach(btn => {
       btn.onclick = async () => {
         if (btn.dataset.type === 'drink') {
-          await store.deleteDrink(Number(btn.dataset.id));
+          await store.deleteDrink(btn.dataset.id);
         } else {
-          await store.deleteMeal(Number(btn.dataset.id));
+          await store.deleteMeal(btn.dataset.id);
         }
         render(container);
       };
@@ -377,7 +377,7 @@ async function renderWorkout() {
 
     recentCard.querySelectorAll('.delete-btn').forEach(btn => {
       btn.onclick = async () => {
-        await store.deleteWorkout(Number(btn.dataset.id));
+        await store.deleteWorkout(btn.dataset.id);
         render(container);
       };
     });
