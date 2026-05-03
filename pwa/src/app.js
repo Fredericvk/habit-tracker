@@ -155,8 +155,10 @@ function renderGoals() {
 // Boot
 // ===== HAPTIC FEEDBACK =====
 function setupHaptics() {
+  let userHasInteracted = false;
   const interactiveSelector = 'button, .tab-btn, .seg-btn, .drink-option, .chip, .nav-arrow, .fab-circle, .delete-btn, .stepper button, input[type="checkbox"]';
   document.addEventListener('pointerdown', (e) => {
+    if (!userHasInteracted) { userHasInteracted = true; return; }
     if (e.target.closest(interactiveSelector) && navigator.vibrate) {
       navigator.vibrate(5);
     }
