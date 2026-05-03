@@ -7,6 +7,13 @@ import { DRINK_ICONS, WORKOUT_ICONS, CAL_PER_MIN } from '../utils/constants.js';
 let container = null;
 let currentDate = new Date();
 
+// Re-render preserving scroll position
+async function rerender() {
+  const scrollEl = container?.closest('.content-area');
+  const scrollY = scrollEl ? scrollEl.scrollTop : 0;
+  await render(container);
+  if (scrollEl) requestAnimationFrame(() => { scrollEl.scrollTop = scrollY; });
+}
 // State
 let calMode = 'Meal'; // 'Meal', 'Snack', 'Drink'
 let mealType = 'Breakfast';
@@ -36,8 +43,8 @@ export async function render(el) {
     <button class="nav-arrow" id="log-next">${icon('chevronRight', 16)}</button>`;
   container.appendChild(dateNav);
 
-  dateNav.querySelector('#log-prev').onclick = () => { currentDate.setDate(currentDate.getDate() - 1); render(container); };
-  dateNav.querySelector('#log-next').onclick = () => { currentDate.setDate(currentDate.getDate() + 1); render(container); };
+  dateNav.querySelector('#log-prev').onclick = () => { currentDate.setDate(currentDate.getDate() - 1); rerender(); };
+  dateNav.querySelector('#log-next').onclick = () => { currentDate.setDate(currentDate.getDate() + 1); rerender(); };
 
   // Render all sections
   await renderCalories();
@@ -214,7 +221,7 @@ async function renderCalories() {
         } else {
           await store.deleteMeal(btn.dataset.id);
         }
-        render(container);
+        rerender();
       };
     });
   }
@@ -223,19 +230,7 @@ async function renderCalories() {
   card.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.onclick = async () => {
       calMode = btn.dataset.mode;
-      const oldCard = document.getElementById('cal-card');
-      if (oldCard) {
-        const parent = oldCard.parentNode;
-        const next = oldCard.nextSibling;
-        parent.removeChild(oldCard);
-        // Temporarily point container to a fragment to capture the new card
-        const frag = document.createDocumentFragment();
-        const savedContainer = container;
-        container = frag;
-        await renderCalories();
-        container = savedContainer;
-        parent.insertBefore(frag, next);
-      }
+      await rerender();
     };
   });
 
@@ -260,7 +255,7 @@ async function renderCalories() {
           kcal
         });
         showToast('✓ Saved');
-        render(container);
+        rerender();
       };
     }
   } else if (calMode === 'Snack') {
@@ -280,7 +275,7 @@ async function renderCalories() {
           kcal: snack.kcal
         });
         showToast('✓ Snack logged');
-        render(container);
+        rerender();
       };
     });
 
@@ -297,7 +292,7 @@ async function renderCalories() {
           kcal
         });
         showToast('✓ Saved');
-        render(container);
+        rerender();
       };
     }
   } else {
@@ -323,7 +318,7 @@ async function renderCalories() {
       await store.addDrink({ date: currentDate, drinkType, quantity: drinkQty });
       showToast('✓ Drink added');
       drinkQty = 1;
-      render(container);
+      rerender();
     };
   }
 }
@@ -389,7 +384,7 @@ async function renderWorkout() {
     const kcal = parseInt(card.querySelector('#wo-kcal').value) || 0;
     await store.addWorkout({ date: currentDate, type: workoutType, duration: workoutDuration, kcal, notes });
     showToast('✓ Workout logged');
-    render(container);
+    rerender();
   };
 
   // Recent workouts today
@@ -411,7 +406,7 @@ async function renderWorkout() {
     recentCard.querySelectorAll('.delete-btn').forEach(btn => {
       btn.onclick = async () => {
         await store.deleteWorkout(btn.dataset.id);
-        render(container);
+        rerender();
       };
     });
   }
@@ -441,6 +436,6 @@ async function renderWeight() {
   card.querySelector('#wt-save').onclick = async () => {
     await store.addWeight({ date: currentDate, value: weightValue });
     showToast('✓ Weight saved');
-    render(container);
+    rerender();
   };
 }
