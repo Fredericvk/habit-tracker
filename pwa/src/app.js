@@ -18,6 +18,7 @@ async function boot() {
   setupSettings();
   setupDayNavigation();
   setupHaptics();
+  setupSyncListener();
 
   // Render default view
   renderOverview();
@@ -137,6 +138,18 @@ function renderGoals() {
 }
 
 // Boot
+// ===== SYNC LISTENER =====
+function setupSyncListener() {
+  import('./db.js').then(({ default: db }) => {
+    // Re-render current view whenever Dexie Cloud finishes syncing
+    db.cloud.events.syncComplete.subscribe(() => {
+      if (currentTab === 'overview') renderOverview();
+      else if (currentTab === 'log') renderLog();
+      else if (currentTab === 'goals') renderGoals();
+    });
+  });
+}
+
 // ===== HAPTIC FEEDBACK =====
 function setupHaptics() {
   const interactiveSelector = 'button, .tab-btn, .seg-btn, .drink-option, .chip, .nav-arrow, .fab-circle, .delete-btn, .stepper button, input[type="checkbox"]';
