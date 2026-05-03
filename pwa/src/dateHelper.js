@@ -52,10 +52,6 @@ export function isWeekday(date) {
   return day >= 1 && day <= 5;
 }
 
-export function isWeekend(date) {
-  return !isWeekday(date);
-}
-
 export function daysInWeek(date) {
   const mon = startOfWeek(date);
   return Array.from({ length: 7 }, (_, i) => {
@@ -74,10 +70,6 @@ export function weeksBetween(start, end) {
     cur.setDate(cur.getDate() + 7);
   }
   return weeks;
-}
-
-export function weekCount(from, to) {
-  return weeksBetween(from, to).length;
 }
 
 const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];

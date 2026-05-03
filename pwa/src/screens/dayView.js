@@ -2,6 +2,7 @@ import * as store from '../store.js';
 import { startOfDay, endOfDay, formatDate } from '../dateHelper.js';
 import { escapeHTML } from '../utils/sanitize.js';
 import { icon } from '../utils/icons.js';
+import { MEAL_ICONS, WORKOUT_ICONS, DRINK_ICONS, CAL_PER_MIN } from '../utils/constants.js';
 
 let currentDate = new Date();
 let container = null;
@@ -9,10 +10,6 @@ let container = null;
 export function setDate(date) {
   currentDate = new Date(date);
 }
-
-const MEAL_ICONS = { Breakfast: '🌅', Lunch: '☀️', Dinner: '🌙', Snack: '🍿', Other: '🍽️' };
-const WORKOUT_ICONS = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', Yoga: '🧘', HIIT: '🔥' };
-const DRINK_ICONS = { Beer: '🍺', Wine: '🍷', Spirit: '🥃', Cocktail: '🍸', Cider: '🍺' };
 
 function donutSVG(pct, color, size = 100, stroke = 9) {
   const r = (size - stroke) / 2;
@@ -184,8 +181,6 @@ export async function render(el) {
   /* ══════════════════════════════
      2. EXERCISE CARD
      ══════════════════════════════ */
-  // Estimated calories per minute by workout type
-  const CAL_PER_MIN = { Run: 10, Gym: 8, Walk: 4, Cycle: 9, Swim: 11, Yoga: 4, HIIT: 12 };
 
   const exCard = document.createElement('div');
   exCard.className = `glass-card dy-ex-card ${workouts.length > 0 ? 'dy-card-glow-green' : ''}`;

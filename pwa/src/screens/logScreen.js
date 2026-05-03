@@ -2,6 +2,7 @@ import * as store from '../store.js';
 import { startOfDay, formatDate, shortDate } from '../dateHelper.js';
 import { escapeHTML } from '../utils/sanitize.js';
 import { icon } from '../utils/icons.js';
+import { DRINK_ICONS, WORKOUT_ICONS, CAL_PER_MIN } from '../utils/constants.js';
 
 let container = null;
 let currentDate = new Date();
@@ -54,7 +55,6 @@ const SNACK_DEFAULTS = [
 ];
 
 const DRINK_TYPES = ['Beer', 'Wine', 'Spirit', 'Cocktail', 'Cider', 'Other'];
-const DRINK_ICONS = { Beer: '🍺', Wine: '🍷', Spirit: '🥃', Cocktail: '🍸', Cider: '🍏', Other: '🥤' };
 
 async function renderCalories() {
   const card = document.createElement('div');
@@ -303,8 +303,6 @@ async function renderWorkout() {
   card.className = 'glass-card';
 
   const types = ['Run', 'Gym', 'Walk', 'Cycle', 'Swim', 'HIIT'];
-  const icons = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', HIIT: '🔥' };
-  const CAL_PER_MIN = { Run: 10, Gym: 8, Walk: 4, Cycle: 9, Swim: 11, HIIT: 12 };
   const estimatedKcal = workoutDuration * (CAL_PER_MIN[workoutType] || 7);
 
   card.innerHTML = `
@@ -312,7 +310,7 @@ async function renderWorkout() {
     <div class="drink-grid">
       ${types.map(t => `
         <div class="drink-option ${workoutType === t ? 'selected' : ''}" data-type="${t}">
-          <span class="drink-icon">${icons[t]}</span>
+          <span class="drink-icon">${WORKOUT_ICONS[t]}</span>
           ${t}
         </div>
       `).join('')}
@@ -402,8 +400,8 @@ async function renderWeight() {
   `;
   container.appendChild(card);
 
-  card.querySelector('#wt-down').onclick = () => { weightValue = Math.max(40, weightValue - 0.1); card.querySelector('#wt-val').textContent = weightValue.toFixed(1); };
-  card.querySelector('#wt-up').onclick = () => { weightValue = Math.min(200, weightValue + 0.1); card.querySelector('#wt-val').textContent = weightValue.toFixed(1); };
+  card.querySelector('#wt-down').onclick = () => { weightValue = Math.max(40, Math.round((weightValue - 0.1) * 10) / 10); card.querySelector('#wt-val').textContent = weightValue.toFixed(1); };
+  card.querySelector('#wt-up').onclick = () => { weightValue = Math.min(200, Math.round((weightValue + 0.1) * 10) / 10); card.querySelector('#wt-val').textContent = weightValue.toFixed(1); };
 
   card.querySelector('#wt-save').onclick = async () => {
     await store.addWeight({ date: currentDate, value: weightValue });

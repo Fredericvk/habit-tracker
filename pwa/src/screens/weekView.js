@@ -2,20 +2,12 @@ import * as store from '../store.js';
 import { startOfWeek, endOfWeek, daysInWeek, weekdayName, shortDate, weekNumber, startOfDay } from '../dateHelper.js';
 import { escapeHTML } from '../utils/sanitize.js';
 import { icon } from '../utils/icons.js';
+import { WORKOUT_ICONS, DRINK_ICONS, SNACK_EMOJIS, CAL_PER_MIN, snackEmoji } from '../utils/constants.js';
 
 let currentDate = new Date();
 let container = null;
 
-const WORKOUT_ICONS = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', Yoga: '🧘', HIIT: '🔥' };
-const DRINK_ICONS = { Beer: '🍺', Wine: '🍷', Spirit: '🥃', Cocktail: '🍸', Cider: '🍺' };
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-const SNACK_EMOJIS = { Cookie: '🍪', Chocolate: '🍫', Nuts: '🥜', Crisps: '🥨', Candy: '🍬' };
-function snackEmoji(desc) {
-  for (const [key, emoji] of Object.entries(SNACK_EMOJIS)) {
-    if (desc && desc.toLowerCase().includes(key.toLowerCase())) return emoji;
-  }
-  return '🍿';
-}
 
 function progressRing(current, target, color, size = 80) {
   const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
@@ -227,7 +219,6 @@ export async function render(el) {
   /* ═══════════════════════════════
      2. EXERCISE CARD – horizontal weekdays with icon, name, kcal
      ═══════════════════════════════ */
-  const CAL_PER_MIN = { Run: 10, Gym: 8, Walk: 4, Cycle: 9, Swim: 11, Yoga: 4, HIIT: 12 };
 
   const exDays = days.map((d, di) => {
     const isFuture = startOfDay(d) > startOfDay(today);

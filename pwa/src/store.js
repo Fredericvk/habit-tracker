@@ -1,5 +1,5 @@
 import db from './db.js';
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, daysInWeek, isWeekday } from './dateHelper.js';
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, daysInWeek } from './dateHelper.js';
 
 // Drink defaults
 export const DRINK_UNITS = { Beer: 2.3, Wine: 2.1, Spirit: 1.0, Cocktail: 2.0, Cider: 2.6 };
@@ -26,7 +26,7 @@ export async function mealsInRange(start, end) {
 
 // ===== WORKOUTS =====
 export async function addWorkout(workout) {
-  const validTypes = ['Run', 'Gym', 'Walk', 'Cycle', 'Swim', 'Yoga', 'HIIT'];
+  const validTypes = ['Run', 'Gym', 'Walk', 'Cycle', 'Swim', 'HIIT'];
   const type = validTypes.includes(workout.type) ? workout.type : 'Run';
   const duration = Math.max(0, Math.min(999, parseInt(workout.duration) || 0));
   const notes = String(workout.notes || '').slice(0, 200);

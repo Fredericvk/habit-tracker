@@ -25,13 +25,11 @@ async function boot() {
 
   // Re-render active view whenever Dexie Cloud finishes syncing
   db.cloud.events.syncComplete.subscribe(() => {
-    console.log('[sync] syncComplete fired — re-rendering');
     renderCurrentTab();
   });
 
   // Also re-render when sync reaches "in-sync" phase (catches initial pull)
   db.cloud.syncState.subscribe(state => {
-    console.log('[sync] syncState:', state?.phase);
     if (state?.phase === 'in-sync') {
       renderCurrentTab();
     }
@@ -43,13 +41,8 @@ async function boot() {
   // Force a pull from cloud so we always show latest data on refresh
   try {
     await db.cloud.sync({ purpose: 'pull', wait: true });
-    console.log('[sync] forced pull complete');
-  } catch (e) {
-    console.warn('[sync] forced pull failed:', e);
-    // Fallback: trigger a manual sync via the internal mechanism
-    try {
-      await db.syncStateChangedEvent?.next?.({ phase: 'pulling' });
-    } catch (_) {}
+  } catch (_) {
+    // Will still get data when syncComplete fires later
   }
 }
 
@@ -105,7 +98,6 @@ function setupSettings() {
   if (clearBtn) {
     clearBtn.addEventListener('click', async () => {
       if (confirm('Clear all data? This cannot be undone.')) {
-        const { default: db } = await import('./db.js');
         await db.delete();
         window.location.reload();
       }

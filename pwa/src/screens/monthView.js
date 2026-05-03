@@ -2,19 +2,11 @@ import * as store from '../store.js';
 import { startOfMonth, endOfMonth, startOfWeek, startOfDay, monthYear, weekNumber, weekdayName, isSameDay, isWeekday, daysInWeek, shortDate } from '../dateHelper.js';
 import { icon } from '../utils/icons.js';
 import { escapeHTML } from '../utils/sanitize.js';
+import { WORKOUT_ICONS, snackEmoji } from '../utils/constants.js';
 
 let currentDate = new Date();
 let container = null;
-let activeFilter = 'default'; // 'default', 'calories', 'exercise', 'snacks', 'alcohol'
-
-const WORKOUT_ICONS = { Run: '🏃', Gym: '🏋️', Walk: '🚶', Cycle: '🚴', Swim: '🏊', Yoga: '🧘', HIIT: '🔥' };
-const SNACK_EMOJIS = { Cookie: '🍪', Chocolate: '🍫', Nuts: '🥜', Crisps: '🥨', Candy: '🍬' };
-function snackEmoji(desc) {
-  for (const [key, emoji] of Object.entries(SNACK_EMOJIS)) {
-    if (desc && desc.toLowerCase().includes(key.toLowerCase())) return emoji;
-  }
-  return '🍿';
-}
+let activeFilter = 'default';
 
 export async function render(el) {
   container = el;
@@ -70,11 +62,11 @@ export async function render(el) {
   const [calGoal, exGoal, snackGoal, alcGoal] = await Promise.all([
     store.getGoal('calories'),
     store.getGoal('exercise'),
-    store.getGoal('snacks'),
+    store.getGoal('snacking'),
     store.getGoal('alcohol'),
   ]);
   const calTarget = calGoal?.dailyTarget ?? calGoal?.target ?? 2300;
-  const alcWeeklyBudget = alcGoal?.weeklyUnits ?? 6;
+  const alcWeeklyBudget = alcGoal?.target ?? 17;
 
   // Calendar header
   const headers = ['Wk', 'M', 'T', 'W', 'T', 'F', 'S', 'S'];
