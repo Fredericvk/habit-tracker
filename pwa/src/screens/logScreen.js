@@ -225,7 +225,10 @@ async function renderCalories() {
 
   if (calMode === 'Meal') {
     card.querySelectorAll('.meal-type-btn').forEach(btn => {
-      btn.onclick = () => { mealType = btn.dataset.type; render(container); };
+      btn.onclick = () => {
+        mealType = btn.dataset.type;
+        card.querySelectorAll('.meal-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === mealType));
+      };
     });
 
     const saveBtn = card.querySelector('#food-save');
@@ -282,12 +285,23 @@ async function renderCalories() {
       };
     }
   } else {
-    // Drink mode handlers
+    // Drink mode handlers — update in-place
     card.querySelectorAll('.drink-option').forEach(opt => {
-      opt.onclick = () => { drinkType = opt.dataset.type; drinkQty = 1; render(container); };
+      opt.onclick = () => {
+        drinkType = opt.dataset.type;
+        drinkQty = 1;
+        card.querySelectorAll('.drink-option').forEach(o => o.classList.toggle('selected', o.dataset.type === drinkType));
+        card.querySelector('#drink-qty').textContent = drinkQty;
+      };
     });
-    card.querySelector('#drink-minus').onclick = () => { if (drinkQty > 1) drinkQty--; render(container); };
-    card.querySelector('#drink-plus').onclick = () => { drinkQty++; render(container); };
+    card.querySelector('#drink-minus').onclick = () => {
+      if (drinkQty > 1) drinkQty--;
+      card.querySelector('#drink-qty').textContent = drinkQty;
+    };
+    card.querySelector('#drink-plus').onclick = () => {
+      drinkQty++;
+      card.querySelector('#drink-qty').textContent = drinkQty;
+    };
 
     card.querySelector('#drink-add').onclick = async () => {
       await store.addDrink({ date: currentDate, drinkType, quantity: drinkQty });
@@ -335,9 +349,14 @@ async function renderWorkout() {
   `;
   container.appendChild(card);
 
-  // Type selection
+  // Type selection — update in-place without re-rendering the full page
   card.querySelectorAll('.drink-option').forEach(opt => {
-    opt.onclick = () => { workoutType = opt.dataset.type; render(container); };
+    opt.onclick = () => {
+      workoutType = opt.dataset.type;
+      card.querySelectorAll('.drink-option').forEach(o => o.classList.toggle('selected', o.dataset.type === workoutType));
+      const est = workoutDuration * (CAL_PER_MIN[workoutType] || 7);
+      card.querySelector('#wo-kcal').value = est;
+    };
   });
 
   // Duration stepper (step 5) — also updates kcal estimate
