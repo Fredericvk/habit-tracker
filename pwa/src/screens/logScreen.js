@@ -227,7 +227,7 @@ async function renderCalories() {
     card.querySelectorAll('.meal-type-btn').forEach(btn => {
       btn.onclick = () => {
         mealType = btn.dataset.type;
-        card.querySelectorAll('.meal-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === mealType));
+        card.querySelectorAll('.meal-type-btn').forEach(b => b.classList.toggle('selected', b.dataset.type === mealType));
       };
     });
 

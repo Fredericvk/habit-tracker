@@ -114,11 +114,5 @@
   </div>
 
   <script type="module" src="/src/app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      const base = document.querySelector('base')?.href || '/';
-      navigator.serviceWorker.register(new URL('sw.js', base)).catch(() => {});
-    }
-  </script>
 </body>
 </html>
