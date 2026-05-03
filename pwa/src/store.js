@@ -29,11 +29,13 @@ export async function addWorkout(workout) {
   const validTypes = ['Run', 'Gym', 'Walk', 'Cycle', 'Swim', 'HIIT'];
   const type = validTypes.includes(workout.type) ? workout.type : 'Run';
   const duration = Math.max(0, Math.min(999, parseInt(workout.duration) || 0));
+  const kcal = Math.max(0, Math.min(9999, parseInt(workout.kcal) || 0));
   const notes = String(workout.notes || '').slice(0, 200);
   return db.workouts.add({
     date: startOfDay(workout.date).getTime(),
     type,
     duration,
+    kcal,
     notes
   });
 }

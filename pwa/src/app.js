@@ -20,30 +20,33 @@ async function boot() {
   // Wait for DB to be open and ready
   await db.open();
 
-  // Seed defaults only after DB is ready
-  await seedDefaults();
-
-  // Re-render active view whenever Dexie Cloud finishes syncing
-  db.cloud.events.syncComplete.subscribe(() => {
-    renderCurrentTab();
-  });
-
-  // Also re-render when sync reaches "in-sync" phase (catches initial pull)
-  db.cloud.syncState.subscribe(state => {
-    if (state?.phase === 'in-sync') {
-      renderCurrentTab();
-    }
-  });
-
-  // Render default view (local data first)
-  renderOverview();
-
-  // Force a pull from cloud so we always show latest data on refresh
+  // Force a pull from cloud BEFORE seeding to avoid creating duplicates
   try {
     await db.cloud.sync({ purpose: 'pull', wait: true });
   } catch (_) {
-    // Will still get data when syncComplete fires later
+    // Cloud may not be reachable — seed with local data
   }
+
+  // Seed defaults only after DB is ready and cloud data is pulled
+  await seedDefaults();
+
+  // Debounced re-render on sync events to avoid excessive renders
+  let renderTimer = null;
+  const scheduleRender = () => {
+    if (renderTimer) return;
+    renderTimer = setTimeout(() => {
+      renderTimer = null;
+      renderCurrentTab();
+    }, 150);
+  };
+
+  db.cloud.events.syncComplete.subscribe(scheduleRender);
+  db.cloud.syncState.subscribe(state => {
+    if (state?.phase === 'in-sync') scheduleRender();
+  });
+
+  // Render default view
+  renderOverview();
 }
 
 // ===== TAB NAVIGATION =====

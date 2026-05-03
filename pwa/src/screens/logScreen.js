@@ -9,7 +9,8 @@ let currentDate = new Date();
 
 // Re-render preserving scroll position
 async function rerender() {
-  const scrollEl = container?.closest('.content-area');
+  if (!container) return;
+  const scrollEl = container.closest('.content-area');
   const scrollY = scrollEl ? scrollEl.scrollTop : 0;
   await render(container);
   if (scrollEl) requestAnimationFrame(() => { scrollEl.scrollTop = scrollY; });
@@ -310,7 +311,7 @@ async function renderCalories() {
       card.querySelector('#drink-qty').textContent = drinkQty;
     };
     card.querySelector('#drink-plus').onclick = () => {
-      drinkQty++;
+      if (drinkQty < 99) drinkQty++;
       card.querySelector('#drink-qty').textContent = drinkQty;
     };
 
@@ -396,7 +397,7 @@ async function renderWorkout() {
       <div class="card-title" style="margin-bottom:8px">Today's workouts</div>
       ${recent.map(w => `
         <div class="meal-item">
-          <span class="meal-desc">${icons[w.type] || '🏃'} ${escapeHTML(w.type)}${w.duration ? ' · ' + w.duration + ' min' : ''}${w.kcal ? ' · ' + w.kcal + ' kcal' : ''}${w.notes ? ' — ' + escapeHTML(w.notes) : ''}</span>
+          <span class="meal-desc">${WORKOUT_ICONS[w.type] || '🏃'} ${escapeHTML(w.type)}${w.duration ? ' · ' + w.duration + ' min' : ''}${w.kcal ? ' · ' + w.kcal + ' kcal' : ''}${w.notes ? ' — ' + escapeHTML(w.notes) : ''}</span>
           <button class="delete-btn" data-id="${w.id}">✕</button>
         </div>
       `).join('')}

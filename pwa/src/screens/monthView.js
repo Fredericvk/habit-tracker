@@ -275,7 +275,7 @@ export async function render(el) {
       ${bestDayDate ? `<div class="mo-stat-card">
         <div class="mo-stat-icon green">${icon('trophy', 18)}</div>
         <div class="mo-stat-value">${bestDayCal}</div>
-        <div class="mo-stat-label">Best Day (kcal)</div>
+        <div class="mo-stat-label">Lowest Cal Day</div>
         <div class="mo-stat-sub">${shortDate(bestDayDate)}</div>
       </div>` : `<div class="mo-stat-card">
         <div class="mo-stat-icon green">${icon('trophy', 18)}</div>
