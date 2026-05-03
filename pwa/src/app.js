@@ -24,11 +24,22 @@ async function boot() {
     renderCurrentTab();
   });
 
-  // Render default view
+  // Also re-render when sync reaches "in-sync" phase (catches initial pull)
+  db.cloud.syncState.subscribe(state => {
+    if (state?.phase === 'in-sync') {
+      renderCurrentTab();
+    }
+  });
+
+  // Render default view (local data first)
   renderOverview();
 
-  // Force an immediate sync on load to pull latest data from cloud
-  try { await db.cloud.sync(); } catch (_) {}
+  // Force a pull from cloud so we always show latest data on refresh
+  try {
+    await db.cloud.sync({ purpose: 'pull', wait: true });
+  } catch (_) {
+    // Will still get data when syncComplete fires later
+  }
 }
 
 // ===== TAB NAVIGATION =====
