@@ -47,10 +47,23 @@ export async function render(el) {
   dateNav.querySelector('#log-prev').onclick = () => { currentDate.setDate(currentDate.getDate() - 1); rerender(); };
   dateNav.querySelector('#log-next').onclick = () => { currentDate.setDate(currentDate.getDate() + 1); rerender(); };
 
+  // Section wrappers so we can swap sections independently
+  const calSection = document.createElement('div');
+  calSection.id = 'log-cal-section';
+  container.appendChild(calSection);
+
+  const woSection = document.createElement('div');
+  woSection.id = 'log-wo-section';
+  container.appendChild(woSection);
+
+  const wtSection = document.createElement('div');
+  wtSection.id = 'log-wt-section';
+  container.appendChild(wtSection);
+
   // Render all sections
-  await renderCalories();
-  await renderWorkout();
-  await renderWeight();
+  await renderCalories(calSection);
+  await renderWorkout(woSection);
+  await renderWeight(wtSection);
 }
 
 const SNACK_DEFAULTS = [
@@ -64,10 +77,13 @@ const SNACK_DEFAULTS = [
 
 const DRINK_TYPES = ['Beer', 'Wine', 'Spirit', 'Cocktail', 'Cider', 'Other'];
 
-async function renderCalories() {
+async function renderCalories(target) {
+  const section = target || document.getElementById('log-cal-section');
+  if (!section) return;
+  section.innerHTML = '';
+
   const card = document.createElement('div');
   card.className = calMode === 'Snack' ? 'glass-card snack-warning-card' : 'glass-card';
-  card.id = 'cal-card';
 
   // 3-way toggle: Meal | Snack | Drink
   const toggle = `
@@ -160,7 +176,7 @@ async function renderCalories() {
   }
 
   card.innerHTML = formHTML;
-  container.appendChild(card);
+  section.appendChild(card);
 
   // ── Today's entries card (meals + snacks + drinks combined) ──
   const [recentMeals, recentDrinks] = await Promise.all([
@@ -213,7 +229,7 @@ async function renderCalories() {
     }
 
     recentCard.innerHTML = entriesHTML;
-    container.appendChild(recentCard);
+    section.appendChild(recentCard);
 
     recentCard.querySelectorAll('.delete-btn').forEach(btn => {
       btn.onclick = async () => {
@@ -222,7 +238,7 @@ async function renderCalories() {
         } else {
           await store.deleteMeal(btn.dataset.id);
         }
-        rerender();
+        renderCalories();
       };
     });
   }
@@ -231,7 +247,7 @@ async function renderCalories() {
   card.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.onclick = async () => {
       calMode = btn.dataset.mode;
-      await rerender();
+      await renderCalories();
     };
   });
 
@@ -256,7 +272,7 @@ async function renderCalories() {
           kcal
         });
         showToast('✓ Saved');
-        rerender();
+        renderCalories();
       };
     }
   } else if (calMode === 'Snack') {
@@ -276,7 +292,7 @@ async function renderCalories() {
           kcal: snack.kcal
         });
         showToast('✓ Snack logged');
-        rerender();
+        renderCalories();
       };
     });
 
@@ -293,7 +309,7 @@ async function renderCalories() {
           kcal
         });
         showToast('✓ Saved');
-        rerender();
+        renderCalories();
       };
     }
   } else {
@@ -319,12 +335,16 @@ async function renderCalories() {
       await store.addDrink({ date: currentDate, drinkType, quantity: drinkQty });
       showToast('✓ Drink added');
       drinkQty = 1;
-      rerender();
+      renderCalories();
     };
   }
 }
 
-async function renderWorkout() {
+async function renderWorkout(target) {
+  const section = target || document.getElementById('log-wo-section');
+  if (!section) return;
+  section.innerHTML = '';
+
   const card = document.createElement('div');
   card.className = 'glass-card';
 
@@ -359,7 +379,7 @@ async function renderWorkout() {
     </div>
     <button class="btn btn-primary btn-block" id="wo-save">Log workout</button>
   `;
-  container.appendChild(card);
+  section.appendChild(card);
 
   // Type selection — update in-place without re-rendering the full page
   card.querySelectorAll('.drink-option').forEach(opt => {
@@ -385,7 +405,7 @@ async function renderWorkout() {
     const kcal = parseInt(card.querySelector('#wo-kcal').value) || 0;
     await store.addWorkout({ date: currentDate, type: workoutType, duration: workoutDuration, kcal, notes });
     showToast('✓ Workout logged');
-    rerender();
+    renderWorkout();
   };
 
   // Recent workouts today
@@ -402,18 +422,22 @@ async function renderWorkout() {
         </div>
       `).join('')}
     `;
-    container.appendChild(recentCard);
+    section.appendChild(recentCard);
 
     recentCard.querySelectorAll('.delete-btn').forEach(btn => {
       btn.onclick = async () => {
         await store.deleteWorkout(btn.dataset.id);
-        rerender();
+        renderWorkout();
       };
     });
   }
 }
 
-async function renderWeight() {
+async function renderWeight(target) {
+  const section = target || document.getElementById('log-wt-section');
+  if (!section) return;
+  section.innerHTML = '';
+
   const card = document.createElement('div');
   card.className = 'glass-card';
 
@@ -429,7 +453,7 @@ async function renderWeight() {
     </div>
     <button class="btn btn-primary btn-block" id="wt-save">Save weight</button>
   `;
-  container.appendChild(card);
+  section.appendChild(card);
 
   card.querySelector('#wt-down').onclick = () => { weightValue = Math.max(40, Math.round((weightValue - 0.1) * 10) / 10); card.querySelector('#wt-val').textContent = weightValue.toFixed(1); };
   card.querySelector('#wt-up').onclick = () => { weightValue = Math.min(200, Math.round((weightValue + 0.1) * 10) / 10); card.querySelector('#wt-val').textContent = weightValue.toFixed(1); };
@@ -437,6 +461,6 @@ async function renderWeight() {
   card.querySelector('#wt-save').onclick = async () => {
     await store.addWeight({ date: currentDate, value: weightValue });
     showToast('✓ Weight saved');
-    rerender();
+    renderWeight();
   };
 }
