@@ -18,19 +18,17 @@ async function boot() {
   setupSettings();
   setupDayNavigation();
   setupHaptics();
-  setupSyncListener();
+
+  // Re-render active view whenever Dexie Cloud finishes syncing
+  db.cloud.events.syncComplete.subscribe(() => {
+    renderCurrentTab();
+  });
 
   // Render default view
   renderOverview();
 
-  // Re-render and re-seed when dexie-cloud completes a sync so that data
-  // retrieved from the cloud is shown without requiring a manual refresh.
-  // seedDefaults() is a fast no-op on subsequent calls thanks to its
-  // localStorage guard; re-rendering on every sync keeps the UI current.
-  db.cloud.events.syncComplete.subscribe(async () => {
-    await seedDefaults();
-    renderCurrentTab();
-  });
+  // Force an immediate sync on load to pull latest data from cloud
+  try { await db.cloud.sync(); } catch (_) {}
 }
 
 // ===== TAB NAVIGATION =====
@@ -138,18 +136,6 @@ function renderGoals() {
 }
 
 // Boot
-// ===== SYNC LISTENER =====
-function setupSyncListener() {
-  import('./db.js').then(({ default: db }) => {
-    // Re-render current view whenever Dexie Cloud finishes syncing
-    db.cloud.events.syncComplete.subscribe(() => {
-      if (currentTab === 'overview') renderOverview();
-      else if (currentTab === 'log') renderLog();
-      else if (currentTab === 'goals') renderGoals();
-    });
-  });
-}
-
 // ===== HAPTIC FEEDBACK =====
 function setupHaptics() {
   const interactiveSelector = 'button, .tab-btn, .seg-btn, .drink-option, .chip, .nav-arrow, .fab-circle, .delete-btn, .stepper button, input[type="checkbox"]';
