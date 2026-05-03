@@ -59,6 +59,7 @@ const DRINK_TYPES = ['Beer', 'Wine', 'Spirit', 'Cocktail', 'Cider', 'Other'];
 async function renderCalories() {
   const card = document.createElement('div');
   card.className = calMode === 'Snack' ? 'glass-card snack-warning-card' : 'glass-card';
+  card.id = 'cal-card';
 
   // 3-way toggle: Meal | Snack | Drink
   const toggle = `
@@ -220,7 +221,22 @@ async function renderCalories() {
 
   // ── Event handlers ──
   card.querySelectorAll('.toggle-btn').forEach(btn => {
-    btn.onclick = () => { calMode = btn.dataset.mode; render(container); };
+    btn.onclick = async () => {
+      calMode = btn.dataset.mode;
+      const oldCard = document.getElementById('cal-card');
+      if (oldCard) {
+        const parent = oldCard.parentNode;
+        const next = oldCard.nextSibling;
+        parent.removeChild(oldCard);
+        // Temporarily point container to a fragment to capture the new card
+        const frag = document.createDocumentFragment();
+        const savedContainer = container;
+        container = frag;
+        await renderCalories();
+        container = savedContainer;
+        parent.insertBefore(frag, next);
+      }
+    };
   });
 
   if (calMode === 'Meal') {
