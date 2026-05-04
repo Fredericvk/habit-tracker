@@ -38,7 +38,10 @@ export async function syncStravaActivities() {
   const tokens = await store.getStravaTokens();
   if (!tokens?.access_token) return { synced: 0, error: 'not_connected' };
 
-  const lastSync = tokens.lastSync || Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
+  const lastSync = tokens.lastSync || null;
+  // Always look back at least 7 days to catch updates to existing activities
+  const sevenDaysAgo = Math.floor(Date.now() / 1000) - 7 * 24 * 60 * 60;
+  const after = lastSync ? Math.min(lastSync, sevenDaysAgo) : sevenDaysAgo;
 
   try {
     const res = await fetch('/api/strava/sync', {
@@ -48,7 +51,7 @@ export async function syncStravaActivities() {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_at: tokens.expires_at,
-        after: lastSync
+        after
       })
     });
 
@@ -72,21 +75,41 @@ export async function syncStravaActivities() {
       });
     }
 
-    // Deduplicate and save new workouts
+    // Deduplicate and save/update workouts
     let synced = 0;
     for (const workout of data.workouts) {
       const existing = await store.getWorkoutByStravaId(workout.stravaId);
-      if (!existing) {
-        await store.addWorkout({
-          date: new Date(workout.date),
-          type: workout.type,
-          duration: workout.duration,
-          kcal: workout.kcal || 0,
-          notes: workout.notes || '',
-          source: 'strava',
-          stravaId: workout.stravaId
-        });
-        synced++;
+      if (existing) {
+        // Update kcal if it was missing before
+        if (workout.kcal && !existing.kcal) {
+          await store.updateWorkout(existing.id, { kcal: workout.kcal });
+          synced++;
+        }
+      } else {
+        // Also check for duplicate by date+type+duration (legacy entries without stravaId)
+        const dateObj = new Date(workout.date);
+        const dayWorkouts = await store.workoutsInRange(dateObj, dateObj);
+        const duplicate = dayWorkouts.find(w =>
+          w.type === workout.type &&
+          Math.abs(w.duration - workout.duration) <= 1 &&
+          w.source === 'strava'
+        );
+        if (!duplicate) {
+          await store.addWorkout({
+            date: dateObj,
+            type: workout.type,
+            duration: workout.duration,
+            distance: workout.distance || 0,
+            kcal: workout.kcal || 0,
+            notes: '',
+            source: 'strava',
+            stravaId: workout.stravaId
+          });
+          synced++;
+        } else if (!duplicate.stravaId) {
+          // Backfill stravaId on legacy entry
+          await store.updateWorkout(duplicate.id, { stravaId: workout.stravaId, kcal: workout.kcal || duplicate.kcal, distance: workout.distance || 0 });
+        }
       }
     }
 

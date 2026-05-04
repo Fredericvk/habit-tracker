@@ -186,15 +186,15 @@ export async function render(el) {
   exCard.className = `glass-card dy-ex-card ${workouts.length > 0 ? 'dy-card-glow-green' : ''}`;
   if (workouts.length > 0) {
     const totalDur = workouts.reduce((s, w) => s + (w.duration || 0), 0);
-    const totalBurned = workouts.reduce((s, w) => s + (w.duration || 0) * (CAL_PER_MIN[w.type] || 7), 0);
+    const totalBurned = workouts.reduce((s, w) => s + (w.kcal || (w.duration || 0) * (CAL_PER_MIN[w.type] || 7)), 0);
     const workoutList = workouts.map(w => {
       const wIcon = WORKOUT_ICONS[w.type] || '🏃';
-      const burned = (w.duration || 0) * (CAL_PER_MIN[w.type] || 7);
+      const burned = w.kcal || (w.duration || 0) * (CAL_PER_MIN[w.type] || 7);
       return `<div class="dy-ex-item">
         <span class="dy-ex-icon">${wIcon}</span>
         <div class="dy-ex-detail">
           <span class="dy-ex-type">${escapeHTML(w.type || 'Workout')}</span>
-          <span class="dy-ex-dur">${w.duration ? `${w.duration} min` : ''}${burned ? ` · ~${burned} kcal` : ''}</span>
+          <span class="dy-ex-dur">${w.distance ? `${(w.distance / 1000).toFixed(1)} km · ` : ''}${w.duration ? `${w.duration} min` : ''}${burned ? ` · ${w.kcal ? '' : '~'}${burned} kcal` : ''}</span>
         </div>
       </div>`;
     }).join('');

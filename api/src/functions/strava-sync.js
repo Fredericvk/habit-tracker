@@ -1,9 +1,9 @@
 import { app } from '@azure/functions';
-import { getClientSecret } from '../lib/keyvault.js';
 
 const STRAVA_TOKEN_URL = 'https://www.strava.com/oauth/token';
 const STRAVA_ACTIVITIES_URL = 'https://www.strava.com/api/v3/athlete/activities';
 const CLIENT_ID = process.env.STRAVA_CLIENT_ID || '130728';
+const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
 
 // Map Strava sport_type to app workout types
 const SPORT_TYPE_MAP = {
@@ -35,13 +35,12 @@ app.http('strava-sync', {
       // Refresh token if expired
       let tokensRefreshed = null;
       if (expires_at && Date.now() / 1000 >= expires_at - 60) {
-        const clientSecret = await getClientSecret();
         const refreshRes = await fetch(STRAVA_TOKEN_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             client_id: CLIENT_ID,
-            client_secret: clientSecret,
+            client_secret: CLIENT_SECRET,
             grant_type: 'refresh_token',
             refresh_token
           })
@@ -81,16 +80,37 @@ app.http('strava-sync', {
 
       const activities = await activitiesRes.json();
 
-      // Map to app format
-      const workouts = activities.map(a => ({
-        stravaId: String(a.id),
-        date: a.start_date_local.split('T')[0],
-        type: mapSportType(a.sport_type || a.type),
-        duration: Math.round(a.moving_time / 60),
-        kcal: a.calories ? Math.round(a.calories) : null,
-        notes: a.name,
-        source: 'strava'
-      }));
+      // Fetch detailed data for each activity to get accurate calories
+      const workouts = [];
+      for (const a of activities) {
+        let kcal = a.calories ? Math.round(a.calories) : 0;
+
+        // If no calories in summary, fetch detailed activity
+        if (!kcal) {
+          try {
+            const detailRes = await fetch(`https://www.strava.com/api/v3/activities/${a.id}`, {
+              headers: { Authorization: `Bearer ${access_token}` }
+            });
+            if (detailRes.ok) {
+              const detail = await detailRes.json();
+              kcal = detail.calories ? Math.round(detail.calories) : 0;
+            }
+          } catch (e) {
+            context.log(`Failed to fetch detail for activity ${a.id}: ${e.message}`);
+          }
+        }
+
+        workouts.push({
+          stravaId: String(a.id),
+          date: a.start_date_local.split('T')[0],
+          type: mapSportType(a.sport_type || a.type),
+          duration: Math.round(a.moving_time / 60),
+          distance: a.distance ? Math.round(a.distance) : 0,
+          kcal,
+          notes: '',
+          source: 'strava'
+        });
+      }
 
       return {
         status: 200,

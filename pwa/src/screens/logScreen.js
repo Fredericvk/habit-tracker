@@ -417,7 +417,7 @@ async function renderWorkout(target) {
       <div class="card-title" style="margin-bottom:8px">Today's workouts</div>
       ${recent.map(w => `
         <div class="meal-item">
-          <span class="meal-desc">${WORKOUT_ICONS[w.type] || '🏃'} ${escapeHTML(w.type)}${w.duration ? ' · ' + w.duration + ' min' : ''}${w.kcal ? ' · ' + w.kcal + ' kcal' : ''}${w.notes ? ' — ' + escapeHTML(w.notes) : ''}</span>
+          <span class="meal-desc">${WORKOUT_ICONS[w.type] || '🏃'} ${escapeHTML(w.type)}${w.duration ? ' · ' + w.duration + ' min' : ''}${w.kcal ? ' · ' + w.kcal + ' kcal' : ''}${w.source === 'strava' ? ' <span style="opacity:0.5;font-size:11px">⚡Strava</span>' : ''}</span>
           <button class="delete-btn" data-id="${w.id}">✕</button>
         </div>
       `).join('')}

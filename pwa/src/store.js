@@ -30,12 +30,14 @@ export async function addWorkout(workout) {
   const type = validTypes.includes(workout.type) ? workout.type : 'Run';
   const duration = Math.max(0, Math.min(999, parseInt(workout.duration) || 0));
   const kcal = Math.max(0, Math.min(9999, parseInt(workout.kcal) || 0));
+  const distance = Math.max(0, parseInt(workout.distance) || 0);
   const notes = String(workout.notes || '').slice(0, 200);
   return db.workouts.add({
     date: startOfDay(workout.date).getTime(),
     type,
     duration,
     kcal,
+    distance,
     notes,
     source: workout.source || 'manual',
     stravaId: workout.stravaId || null
@@ -43,6 +45,7 @@ export async function addWorkout(workout) {
 }
 export async function getWorkouts() { return db.workouts.toArray(); }
 export async function deleteWorkout(id) { return db.workouts.delete(id); }
+export async function updateWorkout(id, changes) { return db.workouts.update(id, changes); }
 export async function workoutsInRange(start, end) {
   return db.workouts.where('date').between(startOfDay(start).getTime(), endOfDay(end).getTime(), true, true).toArray();
 }

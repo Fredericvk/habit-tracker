@@ -232,8 +232,8 @@ export async function render(el) {
     // Show first workout (stack if multiple)
     const items = dw.map(w => {
       const wIcon = WORKOUT_ICONS[w.type] || '🏃';
-      const burned = (w.duration || 0) * (CAL_PER_MIN[w.type] || 7);
-      return `<span class="wk-ex-day-icon">${wIcon}</span><span class="wk-ex-day-name">${w.type}</span><span class="wk-ex-day-kcal">~${burned}</span>`;
+      const burned = w.kcal || (w.duration || 0) * (CAL_PER_MIN[w.type] || 7);
+      return `<span class="wk-ex-day-icon">${wIcon}</span><span class="wk-ex-day-name">${w.type}</span><span class="wk-ex-day-kcal">${w.kcal ? '' : '~'}${burned}</span>`;
     }).join('');
     return `<div class="wk-ex-day-col wk-ex-active"><span class="wk-ex-day-label">${DAY_LABELS[di]}</span>${items}</div>`;
   }).join('');

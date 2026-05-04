@@ -1,8 +1,8 @@
 import { app } from '@azure/functions';
-import { getClientSecret } from '../lib/keyvault.js';
 
 const STRAVA_TOKEN_URL = 'https://www.strava.com/oauth/token';
 const CLIENT_ID = process.env.STRAVA_CLIENT_ID || '130728';
+const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
 const APP_URL = process.env.APP_URL || 'https://mango-bay-04f757203.7.azurestaticapps.net';
 
 app.http('strava-callback', {
@@ -22,14 +22,12 @@ app.http('strava-callback', {
     }
 
     try {
-      const clientSecret = await getClientSecret();
-
       const tokenRes = await fetch(STRAVA_TOKEN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           client_id: CLIENT_ID,
-          client_secret: clientSecret,
+          client_secret: CLIENT_SECRET,
           code,
           grant_type: 'authorization_code'
         })
