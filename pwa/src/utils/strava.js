@@ -17,6 +17,7 @@ export function handleStravaCallback() {
       refresh_token: tokens.refresh_token,
       expires_at: tokens.expires_at,
       athlete_id: tokens.athlete,
+      sync_token: tokens.sync_token,
       lastSync: null
     });
 
@@ -51,6 +52,8 @@ export async function syncStravaActivities() {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_at: tokens.expires_at,
+        athlete_id: tokens.athlete_id,
+        sync_token: tokens.sync_token,
         after
       })
     });

@@ -1,9 +1,15 @@
 import { app } from '@azure/functions';
+import crypto from 'crypto';
 
 const STRAVA_TOKEN_URL = 'https://www.strava.com/oauth/token';
 const STRAVA_ACTIVITIES_URL = 'https://www.strava.com/api/v3/athlete/activities';
-const CLIENT_ID = process.env.STRAVA_CLIENT_ID || '130728';
+const CLIENT_ID = process.env.STRAVA_CLIENT_ID;
 const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
+const SYNC_SECRET = process.env.SYNC_SECRET || crypto.randomBytes(32).toString('hex');
+
+if (!CLIENT_ID || !CLIENT_SECRET) {
+  throw new Error('Missing required env vars: STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET');
+}
 
 // Map Strava sport_type to app workout types
 const SPORT_TYPE_MAP = {
@@ -26,10 +32,21 @@ app.http('strava-sync', {
   handler: async (request, context) => {
     try {
       const body = await request.json();
-      let { access_token, refresh_token, expires_at, after } = body;
+      let { access_token, refresh_token, expires_at, after, athlete_id, sync_token } = body;
 
       if (!access_token || !refresh_token) {
         return { status: 400, jsonBody: { error: 'Missing tokens' } };
+      }
+
+      // Verify sync_token (HMAC of athlete_id signed with SYNC_SECRET)
+      if (!athlete_id || !sync_token) {
+        return { status: 401, jsonBody: { error: 'Missing authentication' } };
+      }
+      const expectedToken = crypto.createHmac('sha256', SYNC_SECRET)
+        .update(String(athlete_id))
+        .digest('hex');
+      if (!crypto.timingSafeEqual(Buffer.from(sync_token), Buffer.from(expectedToken))) {
+        return { status: 401, jsonBody: { error: 'Invalid sync token' } };
       }
 
       // Refresh token if expired

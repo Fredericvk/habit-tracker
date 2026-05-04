@@ -1,10 +1,14 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "/assets/*", "*.svg", "*.ico"]
+    "exclude": ["/api/*", "/assets/*", "*.svg", "*.ico", "*.png"]
   },
   "globalHeaders": {
-    "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://*.dexie.cloud wss://*.dexie.cloud https://www.strava.com; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com 'self'"
+    "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://*.dexie.cloud wss://*.dexie.cloud https://www.strava.com; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com 'self'",
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
   },
   "routes": [
     {
