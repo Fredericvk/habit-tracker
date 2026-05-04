@@ -1,6 +1,6 @@
-# StreakUp — Product Specification
+# Habit Tracker — Product Specification v2.0
 
-> Personal iOS habit tracker. Track exercise, food/weight, and alcohol on a weekly cadence with gamification rewards.
+> Personal habit tracker PWA. Track exercise, food/weight, and alcohol on a weekly cadence with gamification rewards. Cross-device sync via Dexie Cloud, Strava integration via Azure Functions.
 
 ---
 
@@ -8,51 +8,48 @@
 
 | Tracker | What's tracked | Weekly Goal | Reward |
 |---------|---------------|-------------|--------|
-| 🏋️ Exercise | Workouts via Strava | ≥ 4 workouts | Badges |
-| 🥗 Food & Weight | Meals (B/L/D), calories, weight, snacking | No snacking Mon–Fri, ≤ 2,300 kcal/day | Weekend Snack Pass 🎉 |
+| 🏋️ Exercise | Workouts via Strava auto-sync or manual | ≥ 4 workouts | Badges |
+| 🥗 Food & Weight | Meals (B/L/D/Snack), calories, weight | No snacking Mon–Fri, ≤ 2,300 kcal/day | Weekend Snack Pass 🎉 |
 | 🍺 Alcohol | Drinks by type → units + kcal | ≤ 17 units/week | Awareness tracking |
 
-**Week = Monday → Sunday.** Single user, on-device only, no accounts.
+**Week = Monday → Sunday.** Single user, offline-first with cross-device sync.
 
 ---
 
-## 2. User Profile
-
-- Male, 31, 96.5 kg, very active (marathon runner)
-- Daily calorie target: 2,300 kcal
-- Weight goal: 93.0 kg by July 2026
-- VO2 Max: 55.6 → 60 (target)
-
----
-
-## 3. Tech Stack
+## 2. Tech Stack
 
 | Layer | Choice |
 |-------|--------|
-| Language | Swift 5.9+ |
-| UI | SwiftUI (iOS 17+) |
-| Storage | SwiftData |
-| Architecture | MVVM |
-| Charts | Swift Charts |
-| Food AI | Apple Vision + Core ML (on-device only) |
-| Workouts | Strava OAuth2 sync |
-| Font | Inter (+ system fallbacks) |
+| Frontend | Vanilla JS (ES modules) + Vite |
+| Styling | Custom CSS (glass morphism, gradients) |
+| Storage | Dexie.js (IndexedDB) + Dexie Cloud |
+| API | Azure Functions v4 (Node.js 20, ESM) |
+| Hosting | Azure Static Web Apps (free tier) |
+| Workouts | Strava OAuth2 via serverless functions |
+| PWA | Service worker, manifest, offline support |
+| Font | Inter (Google Fonts) |
 
 ---
 
-## 4. Data Model
+## 3. Data Model
 
-### WorkoutEntry
-`id` UUID · `date` Date · `type` String (Run/Gym/Gym Class/custom) · `duration` Int (min) · `kcalBurned` Int? · `source` Enum (.strava/.manual) · `stravaId` String?
+### Workouts
+`@id` (auto) · `date` timestamp · `type` (Run/Gym/Walk/Cycle/Swim/HIIT) · `duration` min · `kcal` Int · `distance` meters · `source` (manual/strava) · `stravaId` String?
 
-### MealEntry
-`id` UUID · `date` Date · `mealType` Enum (breakfast/lunch/dinner/snack) · `description` String · `photo` Data? · `estimatedKcal` Int · `inputMethod` Enum (.manual/.photo)
+### Meals
+`@id` (auto) · `date` timestamp · `mealType` (Breakfast/Lunch/Dinner/Snack) · `description` String · `kcal` Int
 
-### WeightEntry
-`id` UUID · `date` Date · `weight` Double (kg)
+### Drinks
+`@id` (auto) · `date` timestamp · `drinkType` String · `quantity` Int · `units` Double · `kcal` Int
 
-### DrinkEntry
-`id` UUID · `date` Date · `drinkType` Enum · `quantity` Int · `units` Double · `kcal` Int
+### Weight
+`@id` (auto) · `date` timestamp · `weight` Double (kg)
+
+### Goals
+`@id` (auto) · `type` String · `value` number
+
+### Strava Tokens
+`@id` (auto) · `accessToken` · `refreshToken` · `expiresAt` · `athleteId` · `lastSync`
 
 **Drink unit values (UK):**
 
@@ -64,151 +61,138 @@
 | Cocktail | 2.0 | 180 |
 | Cider (pint) | 2.6 | 210 |
 
-### WeekResult (computed)
-`weekStart` Date · `exerciseGoalMet` Bool · `eatingGoalMet` Bool · `drinkingGoalMet` Bool
+---
 
-### Badge
-`id` UUID · `tracker` Enum · `name` String · `weeksRequired` Int · `icon` String · `unlockedAt` Date?
+## 4. Navigation
 
-**Badge tiers:** 2, 4, 8, 12, 26, 52 weeks per tracker.
+**Tab bar:** Log | **Overview** (center FAB) | Goals
+
+Overview is the default/home screen with a floating purple FAB button. Settings accessible via gear icon in header.
 
 ---
 
-## 5. Navigation
+## 5. Screens
 
-**Tab bar:** Log | **Overview** (center FAB) | Goals | Settings
+### 5.1 Overview — Day View
 
-Overview is the default/home screen with a floating purple FAB button.
+- Donut chart for daily calories vs target
+- Meal breakdown by type (Breakfast, Lunch, Dinner) with per-item kcal
+- Exercise card with workout list (type, distance, duration, kcal)
+- Snack + Alcohol summary half-cards
+- Strava badge (⚡) shown on synced workouts
 
----
+### 5.2 Overview — Week View
 
-## 6. Screens
+- Week navigation (‹ › arrows) with date range
+- Stacked bar chart for daily calories by meal type
+- Exercise card with per-day workout icons and kcal
+- Snack-free days tracker with goal progress
+- Alcohol units card with daily breakdown
+- Weight card with trend
 
-### 6.1 Overview — Day Tab (default)
+### 5.3 Overview — Month View
 
-Header: "Today — Friday, Apr 25"
+- Month navigation (‹ ›) with filter chips (All/Calories/Exercise/Snacks/Alcohol)
+- Calendar heatmap — colour-coded days (green/amber/red)
+- Monthly stats: avg calories, exercise count, snack-free weeks, alcohol total
+- Tap day → shows day detail
 
-Four cards with donut progress rings:
+### 5.4 Log Screen
 
-1. **Calories & Weight** — ring shows daily kcal consumed vs 2,300 target. Below: meals grouped by B/L/D with items + kcal. Snacks row shows clean/not. Week average shown inline.
-2. **Exercise** — ring shows weekly workout count (e.g. 3/4). Today's activity or "Rest day — 30 min walk needed". Weekly workout dots (emoji per type).
-3. **No Snacking** — ring shows weekdays clean (e.g. 4/5). Mon–Fri day pills with ✅/○ status. Snack Pass preview toggle.
-4. **Alcohol** — ring shows weekly units consumed (e.g. 11.3/17). Weekly kcal from alcohol. Drink chips breakdown.
+Segmented control: **Meal** | **Snack** | **Drink** | **Workout** | **Weight**
 
-### 6.2 Overview — Week Tab
-
-- **Week navigation** (‹ › arrows) with date range
-- **Color-coded grid**: 7 columns (Mon–Sun), rows for Cal/Exercise/Snacking/Alcohol/Rating
-  - Green = good, amber = OK, red = bad, grey = future
-- **Donut progress cards** (same 4 categories as Day, but showing weekly totals/averages)
-- **Weight chart** — line chart with weekly data points, goal line at 93 kg, progress bar
-
-### 6.3 Overview — Month Tab
-
-- **Month navigation** (‹ ›) with month/year
-- **Calendar heatmap** — color-coded days (green/amber/red). Tap day → switches to Day tab.
-- **Monthly stats** — exercise weeks met, snack-free weeks, alcohol avg, calorie avg, weight trend. Each with trend arrow (↑/→/↓).
-
-### 6.4 Log Screen
-
-Segmented control: **Food** | **Drink** | **Weight**
-
-**Food:**
 - Date navigation (‹ Today ›)
-- Meal type selector: Breakfast / Lunch / Dinner (pill buttons)
-- Input method toggle: Manual / Photo
-  - Manual: text description + calorie input
-  - Photo: camera button → on-device AI estimates kcal
-- "Log Meal" button
+- Each section renders independently (no full-page refresh on tab switch)
+- Today's entries shown below form with delete (✕) buttons
+- Strava-synced workouts show ⚡ badge and cannot be manually added as duplicates
 
-**Drink:**
-- Date navigation
-- Drink grid: 6 cards (Beer 🍺, Wine 🍷, Spirit 🥃, Cocktail 🍹, Cider 🍏, Other 🥤) with unit + kcal info
-- Quantity stepper (−/+) with "drinks" label
-- Session total display
-- "Add Drinks" button
+### 5.5 Goals Screen
 
-**Weight:**
-- Date navigation
-- Weight input (kg, one decimal)
-- "Save Weight" button
-
-### 6.5 Goals Screen
-
-- **Current streaks** per tracker with flame icons
-- **Active goals** as cards (exercise target, snack-free weeks, alcohol limit)
-- **Badges** section with unlocked/locked state
-
-### 6.6 Settings Screen
-
-- Strava connection toggle
-- Notification preferences (morning/evening reminders, toggles)
+- Current streaks per tracker with flame icons and tier labels
+- Active goal cards with progress bars
+- Badge grid with unlocked/locked state and tier progression
 - Goal editing (workout count, alcohol limit, calorie target, weight goal)
-- Appearance (light/dark/system)
-- Data export/reset
+
+### 5.6 Settings (Overlay)
+
+- Cross-device sync status
+- Clear all data
 - About (version)
 
 ---
 
-## 7. Strava Integration
+## 6. Strava Integration
 
-1. OAuth2 flow from Settings → authorize → store tokens in Keychain
-2. Sync on app open + background fetch: pull activities since last sync
-3. Map Strava types → workout types. Dedup via `stravaId`.
-4. Manual entries always work alongside Strava.
+1. OAuth2 flow: Settings → Connect → Strava authorize → callback → tokens stored in Dexie
+2. Sync on app open: fetch activities since last sync (minimum 7-day lookback)
+3. Fetch detailed activity data for accurate calories when summary lacks them
+4. Map Strava sport types → app types:
+   - Run/TrailRun/VirtualRun → Run
+   - Ride/MountainBikeRide/GravelRide/VirtualRide → Cycle
+   - Swim → Swim
+   - WeightTraining/CrossFit → Gym
+   - Walk/Hike → Walk
+   - HIIT/Workout → HIIT
+5. Store distance (meters) for distance-based activities
+6. Deduplication: by `stravaId` index + fallback by date/type/duration
+7. Token refresh handled server-side when expired
+8. All API calls via Azure Functions (secrets never exposed to client)
 
 ---
 
-## 8. Food AI
-
-- On-device only (Core ML + Apple Vision). No cloud APIs.
-- Photo input: identify food → estimate kcal
-- Text input: lookup table fallback for common foods
-- User always confirms/adjusts estimate before saving
-- Show "Estimates are approximate" disclaimer
-
----
-
-## 9. Gamification
+## 7. Gamification
 
 **Streaks:** Consecutive weeks meeting goal, per tracker. Current week = in progress until Sunday.
 
 **Weekend Snack Pass:** Mon–Fri zero snacks → Saturday unlocks pass with celebration animation. Weekend snacks don't break streak.
 
-**Badges:** 6 tiers (2/4/8/12/26/52 weeks) per tracker. Badge unlock animation + haptic.
+**Badges:** 6 tiers (2/4/8/12/26/52 weeks) per tracker. Badge unlock animation.
 
 **Animations:** Confetti on goal met, shimmer on Snack Pass unlock, progress ring fill on screen load.
 
 ---
 
-## 10. Visual Design
+## 8. Visual Design
 
 | Token | Value |
 |-------|-------|
 | Primary | `#5B4CDB` (deep purple/indigo) |
 | Secondary | `#FFD166` (warm gold) |
 | Background | `#F7F8FA` (off-white) |
-| Cards | `#FFFFFF` with soft shadow |
+| Cards | Glass morphism with blur + translucency |
 | Success | `#10B981` (teal-green) |
 | Warning | `#F59E0B` (amber) |
 | Danger | `#EF4444` (red) |
 | Text primary | `#1F2937` |
 | Text secondary | `#6B7280` |
-| Tints | Purple `#EDE9FF`, Blue `#EBF5FF`, Green `#ECFDF5`, Amber `#FFFBEB` |
 
-**Font:** Inter (Google Fonts) + system fallbacks.
+**Font:** Inter (400/500/600/700/800) via Google Fonts.
 **Card radius:** 20px. **Button radius:** 50px (pill). **Tab bar:** frosted glass with floating purple FAB.
-**Segmented controls:** pill chips, active = purple fill + white text, full-width equal sizing.
+**Segmented controls:** pill chips, active = purple fill + white text.
 
 **Principles:** Glanceable · Delightful · Non-judgmental · Minimal input
 
 ---
 
-## 11. Implementation Phases
+## 9. Deployment & Infrastructure
 
-1. **Foundation** — Xcode project, SwiftData models, MVVM scaffold, tab bar shell
-2. **Core Tracking** — Overview Day/Week/Month, Log screen (food/drink/weight), goal computation, streak logic
-3. **Strava** — OAuth2, activity sync, dedup, background refresh
-4. **Food AI** — Core ML integration, photo + text estimation, user override
-5. **Gamification** — Badges, Snack Pass, confetti/haptics, streak animations
-6. **Polish** — Notifications, settings, data export, edge cases, final design pass
+| Component | Service |
+|-----------|---------|
+| Frontend hosting | Azure Static Web Apps (free tier) |
+| API (serverless) | Azure Functions (bundled with SWA) |
+| Database/sync | Dexie Cloud |
+| CI/CD | GitHub Actions (auto-deploy on push to main) |
+| Secrets | Azure app settings (encrypted at rest) |
+
+**Production URL:** https://mango-bay-04f757203.7.azurestaticapps.net
+
+---
+
+## 10. Future Enhancements
+
+- Food AI (photo-based calorie estimation)
+- Push notifications (morning/evening reminders)
+- Disconnect Strava flow (UI button)
+- Manual sync button + last synced indicator
+- Dark mode
+- Data export (CSV/JSON)
