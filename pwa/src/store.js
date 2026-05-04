@@ -36,13 +36,44 @@ export async function addWorkout(workout) {
     type,
     duration,
     kcal,
-    notes
+    notes,
+    source: workout.source || 'manual',
+    stravaId: workout.stravaId || null
   });
 }
 export async function getWorkouts() { return db.workouts.toArray(); }
 export async function deleteWorkout(id) { return db.workouts.delete(id); }
 export async function workoutsInRange(start, end) {
   return db.workouts.where('date').between(startOfDay(start).getTime(), endOfDay(end).getTime(), true, true).toArray();
+}
+
+// ===== STRAVA =====
+export async function getStravaTokens() {
+  const all = await db.stravaTokens.toArray();
+  return all[0] || null;
+}
+export async function saveStravaTokens(tokens) {
+  const existing = await getStravaTokens();
+  if (existing) {
+    return db.stravaTokens.update(existing.id, tokens);
+  }
+  return db.stravaTokens.add(tokens);
+}
+export async function clearStravaTokens() {
+  return db.stravaTokens.clear();
+}
+export async function getWorkoutByStravaId(stravaId) {
+  return db.workouts.where('stravaId').equals(stravaId).first();
+}
+export async function getLastStravaSyncTime() {
+  const tokens = await getStravaTokens();
+  return tokens?.lastSync || null;
+}
+export async function updateStravaSyncTime(timestamp) {
+  const tokens = await getStravaTokens();
+  if (tokens) {
+    return db.stravaTokens.update(tokens.id, { lastSync: timestamp });
+  }
 }
 
 // ===== DRINKS =====

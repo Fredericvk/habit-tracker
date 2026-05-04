@@ -8,10 +8,11 @@ const db = new Dexie('HabitTrackerDB', { addons: [dexieCloud] });
 db.version(1).stores({
   goals: '@id, type, isActive',
   meals: '@id, date, mealType',
-  workouts: '@id, date, type',
+  workouts: '@id, date, type, stravaId',
   drinks: '@id, date, drinkType',
   weights: '@id, date',
-  badges: '@id, tracker, weeksRequired'
+  badges: '@id, tracker, weeksRequired',
+  stravaTokens: '@id'
 });
 
 db.cloud.configure({

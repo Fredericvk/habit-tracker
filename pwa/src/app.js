@@ -5,6 +5,7 @@ import * as monthView from './screens/monthView.js';
 import * as logScreen from './screens/logScreen.js';
 import * as goalsScreen from './screens/goalsScreen.js';
 import db from './db.js';
+import { handleStravaCallback, syncStravaActivities, isStravaConnected } from './utils/strava.js';
 
 // Current state
 let currentTab = 'overview';
@@ -29,6 +30,16 @@ async function boot() {
 
   // Seed defaults only after DB is ready and cloud data is pulled
   await seedDefaults();
+
+  // Handle Strava OAuth callback (if returning from auth)
+  handleStravaCallback();
+
+  // Sync Strava activities if connected
+  if (await isStravaConnected()) {
+    syncStravaActivities().then(result => {
+      if (result.synced > 0) renderCurrentTab();
+    });
+  }
 
   // Debounced re-render on sync events to avoid excessive renders
   let renderTimer = null;

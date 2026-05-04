@@ -1,0 +1,15 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*", "/assets/*", "*.svg", "*.ico"]
+  },
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://*.dexie.cloud wss://*.dexie.cloud https://www.strava.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'"
+  },
+  "routes": [
+    {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous"]
+    }
+  ]
+}

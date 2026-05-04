@@ -1,0 +1,12 @@
+{
+  "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
+  "configurations": {
+    "habit-tracker": {
+      "appLocation": "pwa",
+      "apiLocation": "api",
+      "outputLocation": "dist",
+      "appDevserverUrl": "http://localhost:5173",
+      "apiDevserverUrl": "http://localhost:7071"
+    }
+  }
+}
