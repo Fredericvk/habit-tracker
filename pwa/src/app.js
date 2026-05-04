@@ -104,7 +104,10 @@ function setupSettings() {
   const openBtn = document.getElementById('btn-settings');
   const closeBtn = document.getElementById('btn-close-settings');
 
-  if (openBtn) openBtn.addEventListener('click', () => overlay.classList.add('open'));
+  if (openBtn) openBtn.addEventListener('click', async () => {
+    overlay.classList.add('open');
+    await updateStravaSettingsUI();
+  });
   if (closeBtn) closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
   if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
 
@@ -116,6 +119,31 @@ function setupSettings() {
         window.location.reload();
       }
     });
+  }
+}
+
+async function updateStravaSettingsUI() {
+  const row = document.getElementById('strava-settings-row');
+  if (!row) return;
+  const connected = await isStravaConnected();
+  if (connected) {
+    row.innerHTML = `
+      <span>Strava</span>
+      <span class="badge" style="background:#10B981;color:#fff;">Connected ✓</span>
+      <button class="btn btn-outline btn-danger btn-sm" id="btn-strava-disconnect">Disconnect</button>
+    `;
+    document.getElementById('btn-strava-disconnect')?.addEventListener('click', async () => {
+      if (confirm('Disconnect Strava? Synced workouts will remain.')) {
+        const { disconnectStrava } = await import('./utils/strava.js');
+        await disconnectStrava();
+        await updateStravaSettingsUI();
+      }
+    });
+  } else {
+    row.innerHTML = `
+      <span>Strava</span>
+      <a href="/api/strava/auth" class="btn btn-outline">Connect</a>
+    `;
   }
 }
 
