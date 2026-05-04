@@ -110,16 +110,6 @@ function setupSettings() {
   });
   if (closeBtn) closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
   if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
-
-  const clearBtn = document.getElementById('btn-clear-data');
-  if (clearBtn) {
-    clearBtn.addEventListener('click', async () => {
-      if (confirm('Clear all data? This cannot be undone.')) {
-        await db.delete();
-        window.location.reload();
-      }
-    });
-  }
 }
 
 async function updateStravaSettingsUI() {
